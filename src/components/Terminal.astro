@@ -1,0 +1,71 @@
+---
+// SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+// SPDX-License-Identifier: Apache-2.0
+
+import { copyIcons, iconAttributes } from "../lib/code";
+// A shell command: ">_" tile, "$" prompt (never copied) and a copy button
+// (shown by src/scripts/copy.ts when the clipboard is available).
+// Given { uv, pip }, both commands share the row and <html data-installer>
+// picks one (ProjectCard); the text cross-fades in place.
+// Styles: .terminal in global.css.
+import { site } from "../site.config";
+
+interface Props {
+  command: string | { uv: string; pip: string };
+  /** Optional caption shown above the command. */
+  label?: string;
+}
+
+const { command, label } = Astro.props;
+// [installer class, command]; a single command has no installer
+const commands =
+  typeof command === "string"
+    ? [["", command]]
+    : Object.entries(command).map(([installer, text]) => [`pm-${installer}`, text]);
+---
+
+<div class="term">
+  {label && <span class="label">{label}</span>}
+  <div class="terminal">
+    <span class="tile" aria-hidden="true">&gt;_</span>
+    <code
+      ><span class="prompt" aria-hidden="true">$ </span
+      ><span class="commands"
+        >{commands.map(([pm, text]) => <span class={pm || undefined}>{text}</span>)}</span
+      ></code
+    >
+    {commands.map(([pm, text]) => (
+      <button
+        type="button"
+        class:list={["copy", pm]}
+        data-copy={text}
+        data-copied={site.ui.copied}
+        data-copy-failed={site.ui.copyFailed}
+        aria-label={`${site.ui.copyCommand} ${text}`}
+        title={site.ui.copy}
+        hidden
+      >
+        {copyIcons.map((icon) => (
+          <svg {...iconAttributes()} class={icon.class}>
+            {icon.paths.map((d) => (
+              <path d={d} />
+            ))}
+          </svg>
+        ))}
+      </button>
+    ))}
+  </div>
+</div>
+
+<style>
+.term {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.label {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+</style>

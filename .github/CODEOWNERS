@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+# SPDX-License-Identifier: Apache-2.0
+
+# Reviewers of every pull request (rulesets/branch-default.json requires
+# their review when approvals are required), see
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+* @szymonmaszke

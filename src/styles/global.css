@@ -1,0 +1,621 @@
+/*
+ * SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * opennudge design tokens + base styles. See BRAND.md.
+ * The interface is grayscale (R = G = B), never pure black or white.
+ * Color appears in one place only: highlighted code (src/lib/code.ts).
+ */
+
+/* ---------------------------------------------------------------- tokens */
+
+/* Every color is light-dark(light, dark): the OS setting picks one, and the
+   theme switch forces one through color-scheme (data-theme on <html>). */
+:root {
+  color-scheme: light dark;
+
+  --bg: light-dark(#e4e4e4, #262626);
+  --surface: light-dark(#f1f1f1, #303030); /* cards, code: raised above --bg */
+  --text: light-dark(#323232, #dcdcdc); /* #323232 is the logo charcoal */
+  --muted: light-dark(#5e5e5e, #a3a3a3);
+  --line: light-dark(#c8c8c8, #3d3d3d);
+  --line-strong: light-dark(#a6a6a6, #5a5a5a);
+  --fill: color-mix(in srgb, var(--text) 9%, transparent); /* pills, tiles, tracks */
+  --fill-strong: color-mix(in srgb, var(--text) 15%, transparent); /* their hover */
+  --shadow: light-dark(rgb(28 28 28 / 0.18), rgb(0 0 0 / 0.55)); /* hover lift */
+
+  /* Boxes are "raised": a lighter surface, a faint 1px ring and a soft
+     shadow, instead of a hard gray border (whose rounded corners show their
+     pixels). Lines inside a box use the opaque --divider. */
+  --ring: light-dark(rgb(28 28 28 / 0.09), rgb(255 255 255 / 0.08));
+  --ring-strong: light-dark(rgb(28 28 28 / 0.16), rgb(255 255 255 / 0.14));
+  --soft: light-dark(rgb(28 28 28 / 0.08), rgb(0 0 0 / 0.4));
+  --raised: 0 0 0 1px var(--ring), 0 1px 2px var(--soft), 0 2px 6px -2px var(--soft);
+  --divider: color-mix(in srgb, var(--text) 12%, var(--surface));
+
+  /* system fonts: nothing to download */
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* A 1px border shows its pixels on a tight curve: boxes get a wide radius,
+     controls a smaller one, and draw with fills instead of outlines. */
+  --radius: 10px; /* boxes: cards, code, terminals */
+  --radius-sm: 6px; /* controls: buttons, switch blocks, fields */
+  --page: 68rem;
+  --gutter: clamp(1rem, 4vw, 2rem);
+  --nudge: 2px;
+
+  /* motion: quick to arrive, slow to settle back (see "Motion" in BRAND.md) */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --fast: 160ms;
+  --slow: 360ms;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* ------------------------------------------------------------------ base */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  /* biome-ignore lint/complexity/noImportantStyles: hidden must win over any display set by a class */
+  display: none !important;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: 5rem;
+  /* the scrollbar's space is kept on short pages too, so the header doesn't
+     jump sideways between long and short pages */
+  scrollbar-gutter: stable;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 1.0625rem / 1.6 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* one text font everywhere: buttons don't inherit it by default */
+button {
+  font-family: inherit;
+}
+
+/* no blue tap flash on phones: fills and underlines show the touch */
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+  margin: 0 0 0.5em;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(2.25rem, 6vw, 3.5rem);
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: clamp(1.4rem, 3vw, 1.75rem);
+}
+
+h3 {
+  font-size: 1.1rem;
+}
+
+p {
+  margin: 0 0 1em;
+  text-wrap: pretty;
+}
+
+a {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  text-decoration-color: var(--line-strong);
+}
+
+a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* Everything that reacts to the pointer fades instead of snapping: quick on
+   the way in, slower on the way back. */
+a,
+button,
+.card,
+.nudge,
+.copy,
+.arrow {
+  transition-property:
+    color, background-color, border-color, text-decoration-color, opacity, transform, box-shadow;
+  transition-duration: var(--slow);
+  transition-timing-function: var(--ease);
+}
+
+:is(a, button, .card, .nudge, .copy):is(:hover, :focus-visible),
+:is(a, .nudge):hover .arrow {
+  transition-duration: var(--fast);
+}
+
+/* While the theme switches, colors change at once (or inside the view
+   transition), not each element at its own pace. */
+:root[data-switching] *:not(.theme-toggle svg) {
+  /* biome-ignore lint/complexity/noImportantStyles: must win over every component transition */
+  transition: none !important;
+}
+
+/* The light/dark switch cross-fades the page (ThemeToggle.astro). */
+::view-transition-group(*),
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation-duration: 320ms;
+  animation-timing-function: var(--ease-in-out);
+}
+
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+code,
+pre {
+  font-family: var(--mono);
+  font-size: 0.88em;
+}
+
+pre code {
+  font-size: inherit;
+}
+
+pre,
+code {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+:not(pre) > code {
+  background: var(--fill);
+  border-radius: 4px;
+  padding: 0.05em 0.35em;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+::selection {
+  background: var(--text);
+  color: var(--bg);
+}
+
+/* Markdown (<Markdown>): a paragraph box around paragraphs and lists */
+.prose {
+  margin: 0 0 1em;
+  text-wrap: pretty;
+}
+
+.prose > :first-child {
+  margin-top: 0;
+}
+
+.prose > :last-child {
+  margin-bottom: 0;
+}
+
+.prose p {
+  text-wrap: inherit;
+}
+
+.prose :is(ul, ol) {
+  padding-left: 1.25em;
+}
+
+:is(dd, li) > .prose {
+  margin: 0;
+  text-wrap: wrap;
+}
+
+/* ---------------------------------------------------------------- layout */
+
+.wrap {
+  width: 100%;
+  max-width: var(--page);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.section {
+  padding-block: clamp(2.5rem, 6vw, 4.5rem);
+  border-top: 1px solid var(--line);
+}
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.section-head h2 {
+  margin: 0;
+}
+
+.section-head :is(p, .prose) {
+  margin: 0;
+  color: var(--muted);
+}
+
+.eyebrow {
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  margin: 0 0 0.75rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.lead {
+  font-size: clamp(1.1rem, 2vw, 1.25rem);
+  max-width: 38rem;
+}
+
+.skip {
+  position: absolute;
+  left: 0.5rem;
+  top: -3rem;
+  z-index: 100;
+  padding: 0.5rem 0.75rem;
+  background: var(--text);
+  color: var(--bg);
+  border-radius: var(--radius);
+}
+
+.skip:focus {
+  top: 0.5rem;
+}
+
+/* ------------------------------------------------------------ components */
+
+/* "the nudge": a 2px shift to the right on hover. Only where a pointer
+   hovers: on touch screens a tap would leave cards stuck nudged. */
+.nudge {
+  position: relative;
+}
+
+@media (hover: hover) {
+  .nudge {
+    will-change: transform; /* text stays crisp, no re-render when it settles */
+  }
+
+  .nudge:hover {
+    transform: translateX(var(--nudge));
+  }
+
+  /* While nudged, an invisible strip fills the gap left behind, so a pointer
+     resting on the left edge stays on the card (instead of flickering). */
+  .nudge:hover::before {
+    content: "";
+    position: absolute;
+    inset-block: -1px;
+    left: calc(-1px - var(--nudge));
+    width: calc(var(--nudge) + 1px);
+  }
+
+  /* text links only: arrows in buttons stay put */
+  a:not(.button):hover > .arrow,
+  .nudge:hover .arrow {
+    transform: translateX(calc(var(--nudge) * 2));
+  }
+
+  /* clickable cards lift off the page: their shadow grows */
+  .card.nudge:hover {
+    box-shadow:
+      0 0 0 1px var(--ring-strong),
+      0 2px 4px -1px var(--shadow),
+      0 14px 28px -10px var(--shadow);
+  }
+}
+
+/* landed on from a link (#lintkit): the border lights up, then fades */
+.card:target {
+  animation: target 2s var(--ease);
+}
+
+@keyframes target {
+  from,
+  40% {
+    box-shadow: 0 0 0 2px var(--text);
+  }
+}
+
+.arrow {
+  display: inline-block;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.15rem 1.25rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--raised);
+}
+
+/* Filled gray pills: a faint fill of the text color, so they work on any
+   surface and in dark mode alike. */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tags li {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  padding: 0.15rem 0.55rem;
+  border-radius: 4px;
+  background: var(--fill);
+  color: var(--text);
+}
+
+/* Secondary buttons are a faint fill, primary ones a solid --text block.
+   No outlines: a dark 1px curve shows its pixels. (The transparent border
+   keeps both the same size.) */
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.95rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--fill);
+  font-weight: 700;
+  text-decoration: none;
+  line-height: 1.2;
+}
+
+.button.primary {
+  background: var(--text);
+  color: var(--bg);
+}
+
+/* Buttons stay put on hover (moving the box under the cursor makes it
+   flicker at the edge); only the fill changes. */
+.button:hover {
+  text-decoration: none;
+  background: var(--fill-strong);
+}
+
+.button.primary:hover {
+  --hover: color-mix(in srgb, var(--text) 82%, var(--bg));
+  background: var(--hover);
+  border-color: var(--hover);
+}
+
+/* ------------------------------------------------------------------ code */
+
+pre {
+  background: var(--surface);
+  box-shadow: var(--raised);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+  overflow-x: auto;
+  line-height: 1.55;
+  font-size: 0.92rem;
+}
+
+/* Shiki: keep our gray surface instead of the theme's background. */
+pre.astro-code {
+  /* biome-ignore lint/complexity/noImportantStyles: Shiki sets the theme background inline */
+  background-color: var(--surface) !important;
+}
+
+/* Terminal (<Terminal>): a gray row with a ">_" tile and a "$" prompt. */
+.terminal {
+  display: flex;
+  min-width: 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--raised);
+  overflow: hidden;
+}
+
+.terminal .tile {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  background: var(--fill);
+  color: var(--muted);
+  font: 700 0.78rem / 1 var(--mono);
+  user-select: none;
+}
+
+.terminal > code {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  align-self: center;
+  padding: 0.45rem 0.6rem;
+  white-space: nowrap;
+  font-size: 0.9rem;
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+
+.terminal .prompt {
+  color: var(--muted);
+  font-weight: 700;
+  user-select: none;
+}
+
+/* uv / pip (ProjectCard): both commands share one spot and <html
+   data-installer> picks one. The other fades out quickly while the chosen
+   one fades in; their copy buttons look the same, so they simply swap. */
+.terminal .commands {
+  display: inline-grid;
+}
+
+.terminal .commands > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity var(--slow) var(--ease),
+    visibility 0s;
+}
+
+:root:not([data-installer="pip"]) .commands > .pm-pip,
+:root[data-installer="pip"] .commands > .pm-uv {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--fast) var(--ease),
+    visibility 0s var(--fast);
+}
+
+:root:not([data-installer="pip"]) .copy.pm-pip,
+:root[data-installer="pip"] .copy.pm-uv {
+  display: none;
+}
+
+/* icon button: copy, then a check mark and a "copied" note for a moment
+   (src/scripts/copy.ts) */
+.copy {
+  flex: none;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  margin-inline: 0.3rem;
+  padding: 0.3rem;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.copy:hover {
+  color: var(--text);
+  background: var(--fill);
+}
+
+/* fingers need more room than the 14px icon */
+@media (pointer: coarse) {
+  .copy {
+    padding: 0.5rem;
+    margin-inline: 0.1rem;
+  }
+}
+
+.copy .done,
+.copy[data-state="copied"] .idle {
+  display: none;
+}
+
+.copy[data-state="copied"] .done {
+  display: block;
+  color: var(--text);
+  animation: pop var(--slow) var(--ease);
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+/* the note ("copied" / "copy failed", data-note): an inverted label that
+   opens to the right of the icon, inside the button. The command beside it
+   gives up spare room at its end instead of being covered. */
+.copy::after {
+  content: attr(data-note);
+  max-width: 0;
+  overflow: hidden;
+  margin-left: 0;
+  padding: 0.1rem 0;
+  border-radius: 4px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  white-space: nowrap;
+  opacity: 0;
+  transition-property: max-width, margin-left, padding, opacity;
+  transition-duration: var(--slow);
+  transition-timing-function: var(--ease);
+}
+
+.copy[data-state]::after {
+  max-width: 7rem;
+  margin-left: 0.35rem;
+  padding-inline: 0.45rem;
+  opacity: 1;
+  transition-duration: var(--fast);
+}
+
+/* ----------------------------------------------------------- reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* biome-ignore-start lint/complexity/noImportantStyles: reduced motion must win over every component */
+    transition: none !important;
+    animation: none !important;
+    /* biome-ignore-end lint/complexity/noImportantStyles: reduced motion must win over every component */
+  }
+
+  .nudge:hover,
+  a:not(.button):hover > .arrow,
+  .nudge:hover .arrow {
+    transform: none;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    /* biome-ignore lint/complexity/noImportantStyles: reduced motion must win over the default view transition */
+    animation: none !important;
+  }
+}

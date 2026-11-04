@@ -1,0 +1,29 @@
+---
+// SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+// SPDX-License-Identifier: Apache-2.0
+
+// The opennudge logo, inlined as SVG so it follows the theme (currentColor).
+import LogoFull from "../assets/brand/logo.svg";
+import LogoMark from "../assets/brand/mark.svg";
+
+interface Props {
+  /** "full" = mark + wordmark, "mark" = the o+n symbol only. */
+  variant?: "full" | "mark";
+  height?: number;
+  /** Hidden from screen readers, when the name is written next to it. */
+  decorative?: boolean;
+}
+
+const { variant = "full", height = 26, decorative = false } = Astro.props;
+const Svg = variant === "mark" ? LogoMark : LogoFull;
+---
+
+<Svg height={height} width="auto" class="logo" aria-hidden={decorative ? "true" : undefined} />
+
+<style>
+.logo {
+  display: block;
+  width: auto;
+  color: var(--text);
+}
+</style>

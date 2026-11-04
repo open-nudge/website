@@ -1,0 +1,19 @@
+---
+// SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+// SPDX-License-Identifier: Apache-2.0
+import { renderMarkdown } from "../lib/markdown";
+
+interface Props {
+  text: string;
+  class?: string;
+  inline?: boolean;
+}
+const { text, class: className, inline = false } = Astro.props;
+---
+
+{inline ? (
+  // biome-ignore lint/correctness/noUndeclaredVariables: Astro provides Fragment for wrapper-free HTML
+  <Fragment set:html={renderMarkdown(text, true)} />
+) : (
+  <div class:list={["prose", className]} set:html={renderMarkdown(text)} />
+)}

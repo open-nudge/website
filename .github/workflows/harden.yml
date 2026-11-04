@@ -1,0 +1,252 @@
+# SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+# SPDX-License-Identifier: Apache-2.0
+
+# Applies repository settings, security features, GitHub Pages and rulesets
+# (.github/rulesets) once the repository is public, adapted from opentemplate.
+# Run manually with a short-lived HARDEN_GITHUB_TOKEN (see CONTRIBUTING.md),
+# re-runnable (e.g. to change the number of contributors).
+
+---
+name: "Harden"
+
+on:
+  workflow_dispatch:
+    inputs:
+      contributors:
+        description: "Number of contributors (including you)"
+        type: "choice"
+        default: "1 (solo)"
+        options:
+          - "1 (solo)"
+          - "2"
+          - "3 (or more)"
+        required: true
+
+# enq: the only way to set permissions to none in GH Actions
+permissions: {} # yamllint disable-line rule:braces
+
+concurrency:
+  group: >
+    ${{ github.workflow_ref }}
+
+jobs:
+  harden:
+    name: "Harden"
+    if: >
+      github.ref == 'refs/heads/main'
+    permissions:
+      contents: "read" # Needed to checkout the rulesets
+      actions: "write" # Needed to run the Security Scorecard workflow
+    timeout-minutes: 10
+    runs-on: "ubuntu-latest"
+    env:
+      DOMAIN: "opennudge.com"
+    steps:
+      - name: "Harden Runner"
+        uses: "step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25" # v2.22.1
+        with:
+          disable-sudo-and-containers: true
+          egress-policy: "block"
+          allowed-endpoints: >
+            *.actions.githubusercontent.com:443
+            codeload.github.com:443
+            results-receiver.actions.githubusercontent.com:443
+            *.blob.core.windows.net:443
+            api.github.com:443
+            github.com:443
+      - name: "Require a public repository"
+        # Rulesets, Pages, secret scanning and code scanning are free
+        # for public repositories only
+        if: >
+          github.event.repository.visibility != 'public'
+        run: >
+          echo "::error::Make the repository public before hardening it" && exit 1
+      - name: "Normalize contributors"
+        id: "contributors"
+        env:
+          CONTRIBUTORS: "${{ inputs.contributors }}"
+        # Required pull request approvals (author excluded)
+        # enq: indentation disabled to aid bash script readability
+        # yamllint disable rule:indentation
+        run: |
+          case "${CONTRIBUTORS}" in
+            "1 (solo)")
+              echo "approvals=0" >> "${GITHUB_OUTPUT}"
+              ;;
+            "2")
+              echo "approvals=1" >> "${GITHUB_OUTPUT}"
+              ;;
+            *)
+              echo "approvals=2" >> "${GITHUB_OUTPUT}"
+              ;;
+          esac
+        # yamllint enable rule:indentation
+      - name: "Checkout repository"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7.0.1
+        with:
+          sparse-checkout: |
+            .github/rulesets
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - name: "Adjust reviewers in rulesets"
+        env:
+          REVIEWERS: "${{ steps.contributors.outputs.approvals }}"
+          LAST_PUSH_APPROVAL: >-
+            ${{ steps.contributors.outputs.approvals != '0' && 'true' || 'false' }}
+        run: >
+          sed -i
+          -e "s/\"PLACEHOLDER_REVIEWERS\"/${REVIEWERS}/g"
+          -e "s/\"PLACEHOLDER_LAST_PUSH_APPROVAL\"/${LAST_PUSH_APPROVAL}/g"
+          .github/rulesets/branch-default.json
+      - name: "Apply general settings for the repository"
+        # Administration write
+        # https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#update-a-repository
+        env:
+          # enq: short-lived token (1 day), removed from secrets after hardening
+          GH_TOKEN: "${{ secrets.HARDEN_GITHUB_TOKEN }}" # zizmor: ignore[secrets-outside-env]
+        # enq: indentation disabled to aid bash script readability
+        # yamllint disable rule:indentation
+        run: >
+          cat <<EOF | gh api --method PATCH "repos/${GITHUB_REPOSITORY}" --input -
+            {
+              "allow_auto_merge": true,
+              "allow_merge_commit": false,
+              "allow_rebase_merge": false,
+              "allow_squash_merge": true,
+              "allow_update_branch": true,
+              "delete_branch_on_merge": true,
+              "use_squash_pr_title_as_default": true,
+              "has_issues": true,
+              "has_projects": true,
+              "has_wiki": false,
+              "homepage": "https://${DOMAIN}",
+              "squash_merge_commit_title": "PR_TITLE",
+              "squash_merge_commit_message": "COMMIT_MESSAGES",
+              "web_commit_signoff_required": true
+            }
+          EOF
+        # yamllint enable rule:indentation
+      - name: "Enable GitHub Pages with the custom domain"
+        # Administration AND Pages write, deployed by deploy.yml
+        # https://docs.github.com/en/rest/pages/pages?apiVersion=2022-11-28#create-a-github-pages-site
+        env:
+          # enq: short-lived token (1 day), removed from secrets after hardening
+          GH_TOKEN: "${{ secrets.HARDEN_GITHUB_TOKEN }}" # zizmor: ignore[secrets-outside-env]
+        # enq: indentation disabled to aid bash script readability
+        # yamllint disable rule:indentation
+        run: |
+          if ! gh api "repos/${GITHUB_REPOSITORY}/pages" > /dev/null 2>&1; then
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/pages" -f "build_type=workflow"
+          fi
+          gh api --method PUT "repos/${GITHUB_REPOSITORY}/pages" \
+            -f "build_type=workflow" -f "cname=${DOMAIN}"
+        # yamllint enable rule:indentation
+      - name: "Enforce HTTPS for GitHub Pages (best effort)"
+        # Fails until DNS points to GitHub Pages and the certificate is issued,
+        # re-run the workflow or tick "Enforce HTTPS" in Settings -> Pages
+        continue-on-error: true
+        env:
+          # enq: short-lived token (1 day), removed from secrets after hardening
+          GH_TOKEN: "${{ secrets.HARDEN_GITHUB_TOKEN }}" # zizmor: ignore[secrets-outside-env]
+        run: >
+          gh api --method PUT "repos/${GITHUB_REPOSITORY}/pages"
+          -F "https_enforced=true"
+      - name: "Allow GitHub Pages deployments from main only"
+        # Administration write
+        # https://docs.github.com/en/rest/deployments/environments?apiVersion=2022-11-28#create-or-update-an-environment
+        env:
+          # enq: short-lived token (1 day), removed from secrets after hardening
+          GH_TOKEN: "${{ secrets.HARDEN_GITHUB_TOKEN }}" # zizmor: ignore[secrets-outside-env]
+          ENVIRONMENT: "repos/${{ github.repository }}/environments/github-pages"
+        # enq: indentation disabled to aid bash script readability
+        # yamllint disable rule:indentation
+        run: |
+          gh api --method PUT "${ENVIRONMENT}" \
+            -F "deployment_branch_policy[protected_branches]=false" \
+            -F "deployment_branch_policy[custom_branch_policies]=true"
+          policies=$(gh api "${ENVIRONMENT}/deployment-branch-policies" \
+            --jq '.branch_policies[] | select(.type == "branch") | .name')
+          if ! grep --quiet --line-regexp "main" <<< "${policies}"; then
+            gh api --method POST "${ENVIRONMENT}/deployment-branch-policies" \
+              -f "name=main" -f "type=branch"
+          fi
+        # yamllint enable rule:indentation
+      - name: "Enable vulnerability alerts"
+        # Administration write
+        # https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#enable-vulnerability-alerts
+        env:
+          # enq: short-lived token (1 day), removed from secrets after hardening
+          GH_TOKEN: "${{ secrets.HARDEN_GITHUB_TOKEN }}" # zizmor: ignore[secrets-outside-env]
+        run: >
+          gh api --method PUT "repos/${GITHUB_REPOSITORY}/vulnerability-alerts"
+      - name: "Enable private vulnerability reporting"
+        # Administration write
+        # https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#enable-private-vulnerability-reporting-for-a-repository
+        env:
+          # enq: short-lived token (1 day), removed from secrets after hardening
+          GH_TOKEN: "${{ secrets.HARDEN_GITHUB_TOKEN }}" # zizmor: ignore[secrets-outside-env]
+        run: >
+          gh api --method PUT
+          "repos/${GITHUB_REPOSITORY}/private-vulnerability-reporting"
+      - name: "Enable security features (best effort)"
+        # One request per feature, so an unavailable one does not block the rest
+        # Administration write
+        # https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#update-a-repository
+        env:
+          # enq: short-lived token (1 day), removed from secrets after hardening
+          GH_TOKEN: "${{ secrets.HARDEN_GITHUB_TOKEN }}" # zizmor: ignore[secrets-outside-env]
+        # enq: indentation disabled to aid bash script readability
+        # yamllint disable rule:indentation
+        run: |
+          for feature in \
+            secret_scanning \
+            secret_scanning_push_protection \
+            secret_scanning_non_provider_patterns \
+            secret_scanning_ai_detection \
+            dependabot_security_updates; do
+            jq --null-input --arg feature "${feature}" \
+              '{security_and_analysis: {($feature): {status: "enabled"}}}' \
+              | gh api --method PATCH "repos/${GITHUB_REPOSITORY}" --input - > /dev/null \
+              || echo "::warning::Could not enable ${feature}"
+          done
+        # yamllint enable rule:indentation
+      - name: "Enable CodeQL default setup"
+        # Required by the code_scanning rule of rulesets/branch-default.json
+        # Administration write
+        # https://docs.github.com/en/rest/code-scanning/code-scanning?apiVersion=2022-11-28#update-a-code-scanning-default-setup-configuration
+        env:
+          # enq: short-lived token (1 day), removed from secrets after hardening
+          GH_TOKEN: "${{ secrets.HARDEN_GITHUB_TOKEN }}" # zizmor: ignore[secrets-outside-env]
+        run: >
+          gh api --method PATCH
+          "repos/${GITHUB_REPOSITORY}/code-scanning/default-setup"
+          -f "state=configured" -f "query_suite=default"
+      - name: "Apply rulesets"
+        # Updates rulesets of the same name, so the workflow can be re-run
+        # Administration write
+        # https://docs.github.com/en/rest/repos/rules?apiVersion=2022-11-28#create-a-repository-ruleset
+        env:
+          # enq: short-lived token (1 day), removed from secrets after hardening
+          GH_TOKEN: "${{ secrets.HARDEN_GITHUB_TOKEN }}" # zizmor: ignore[secrets-outside-env]
+        # enq: indentation disabled to aid bash script readability
+        # yamllint disable rule:indentation
+        run: |
+          existing=$(gh api "repos/${GITHUB_REPOSITORY}/rulesets" \
+            --jq 'map(select(.source_type == "Repository") | {(.name): .id}) | add // {}')
+          for file in .github/rulesets/*.json; do
+            name=$(jq --raw-output '.name' "${file}")
+            id=$(jq --raw-output --arg name "${name}" '.[$name] // empty' <<< "${existing}")
+            if [ -n "${id}" ]; then
+              gh api --method PUT "repos/${GITHUB_REPOSITORY}/rulesets/${id}" --input "${file}"
+            else
+              gh api --method POST "repos/${GITHUB_REPOSITORY}/rulesets" --input "${file}"
+            fi
+          done
+        # yamllint enable rule:indentation
+      - name: "Run Security Scorecard"
+        # Hardening increases the score significantly
+        env:
+          GH_TOKEN: "${{ github.token }}"
+        run: >
+          gh workflow run security-scorecard.yml --ref main
+...

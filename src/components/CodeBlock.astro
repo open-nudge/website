@@ -1,0 +1,14 @@
+---
+// SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+// SPDX-License-Identifier: Apache-2.0
+
+// Highlighted code: Kanagawa, contrast-lifted for our grays (src/lib/code.ts).
+import { Code } from "astro:components";
+import { codeThemes } from "../lib/code";
+
+type Props = Pick<Parameters<typeof Code>[0], "code" | "lang">;
+
+const { code, lang } = Astro.props;
+---
+
+<Code code={code} lang={lang} themes={codeThemes} defaultColor="light-dark()" />

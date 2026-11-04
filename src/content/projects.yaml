@@ -1,0 +1,122 @@
+# SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+# SPDX-License-Identifier: Apache-2.0
+#
+# Open source projects shown on the home page, in the order of this file.
+#
+# name:                     # the key: project, repository and PyPI name
+#   description: "..."      # required: Markdown prose (use |- for paragraphs/lists)
+#   group: "linters"        # required: linters | automation | pytorch (src/content/site.yaml)
+#   tags:                   # short labels shown as pills
+#     - "CLI"
+#   install: "name[all]"    # PyPI requirement, shown as `uv add` / `pip install`
+#   steps:                  # instead of `install`: numbered steps (Markdown allowed)
+#     - "..."
+#   mcp: true               # `name mcp` starts an MCP server (needs the [mcp] extra)
+#   featured: true          # the large "start here" block (one project)
+#   hidden: true            # kept here, but not shown anywhere
+#
+# Links are derived from the name; set `repo`, `docs` or `pypi` only when they differ:
+#   repo: https://github.com/open-nudge/<name>
+#   docs: https://open-nudge.github.io/<name>/
+#   pypi: https://pypi.org/project/<name>/ (only with `install`)
+
+---
+opentemplate:
+  description: "All-in-one Python template. One click. Everything included."
+  group: "automation"
+  featured: true
+  steps:
+    - "Click \"Use this template\" on GitHub and add a description"
+    - "Wait for the automated setup commit"
+    - "Clone it and run `uv run poe setup`"
+    - "Follow the setup issue to run `harden.yml`"
+  tags:
+    - "GitHub template"
+    - "SLSA L3"
+    - "attested SBOMs"
+    - "uv + prek"
+
+lintkit:
+  description: "Custom linters in ~20 lines of Python. For Python, YAML, JSON and TOML."
+  group: "linters"
+  install: "lintkit[all]"
+  tags:
+    - "framework"
+    - "noqa support"
+    - "MCP for every linter you build"
+
+noqaexplain:
+  description: "Every ignored lint rule needs a written reason. Ruff, eslint, clippy and more."
+  group: "linters"
+  install: "noqaexplain[all]"
+  # mcp: true  # has one, left out of the agent-ready section for now
+  tags:
+    - "CLI"
+    - "pre-commit hook"
+    - "MCP server"
+    - "many languages"
+
+pynudger:
+  description: "Highly opinionated semantic linter. Tells you where code belongs and how to name it."
+  group: "linters"
+  install: "pynudger[all]"
+  mcp: true
+  tags:
+    - "CLI"
+    - "pre-commit hook"
+    - "MCP server"
+
+pratidoc:
+  description: "Lint your repository docs. Ensure the essentials are always there."
+  group: "linters"
+  hidden: true
+  install: "pratidoc"
+  tags:
+    - "CLI"
+    - "pre-commit hook"
+    - "repo-wide"
+
+comver:
+  description: "Semantic versions from commits alone. No tags; verifiable by SHA and checksum."
+  group: "automation"
+  install: "comver"
+  tags:
+    - "CLI"
+    - "pdm / hatch plugin"
+    - "verifiable versions"
+
+cogeol:
+  description: "Always up-to-date Python versions in pyproject.toml and CI, via endoflife.date."
+  group: "automation"
+  install: "cogeol"
+  tags:
+    - "SPEC0"
+    - "cog based"
+
+loadfig:
+  description: >-
+    Load your project's config in one line. pyproject.toml and .config support, zero dependencies.
+  group: "automation"
+  install: "loadfig"
+  tags:
+    - "no dependencies"
+    - "git aware"
+
+torchlayers:
+  description: "Shape and dimension inference (Keras-like) for PyTorch layers and neural networks."
+  group: "pytorch"
+  hidden: true
+  install: "torchlayers"
+  tags:
+    - "shape inference"
+    - "custom layers"
+
+torchdatasets:
+  description: "PyTorch datasets extended with map, cache and more (tf.data-like)."
+  group: "pytorch"
+  hidden: true
+  install: "torchdatasets"
+  tags:
+    - "map / filter / cache"
+    - "input pipelines"
+...

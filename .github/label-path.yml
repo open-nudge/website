@@ -1,0 +1,73 @@
+# SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+# SPDX-License-Identifier: Apache-2.0
+
+# Pull request labels by changed paths (labeler.yml)
+
+---
+actions:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+
+deps:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "package.json"
+          - "package-lock.json"
+          - ".nvmrc"
+          - "prek.toml"
+          - ".github/dependabot.yml"
+
+config:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".codespellrc"
+          - ".conform.yaml"
+          - ".editorconfig"
+          - ".gitattributes"
+          - ".gitignore"
+          - ".mdformat.toml"
+          - ".npmrc"
+          - ".pymarkdown.yaml"
+          - ".vale.ini"
+          - ".yamllint.yml"
+          - "astro.config.mjs"
+          - "astro.env"
+          - "biome.jsonc"
+          - "lychee.toml"
+          - "prek.toml"
+          - "tsconfig.json"
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+
+legal:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "LICENSE"
+          - "LICENSES/**"
+          - "REUSE.toml"
+          - "DCO.md"
+          - "BRAND.md"
+          - ".github/CODEOWNERS"
+
+security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/security-*.yml"
+          - ".github/workflows/harden.yml"
+          - ".github/rulesets/**"
+
+src:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/**"
+
+assets:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "public/**"
+          - "src/assets/**"
+...

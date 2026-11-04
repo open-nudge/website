@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+# SPDX-License-Identifier: Apache-2.0
+
+---
+policies:
+  - type: "commit"
+    spec:
+      dco: true
+      gpg:
+        required: true
+      spellcheck:
+        locale: "US"
+...

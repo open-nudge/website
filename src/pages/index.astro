@@ -1,0 +1,535 @@
+---
+// SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+// SPDX-License-Identifier: Apache-2.0
+
+import CodeBlock from "../components/CodeBlock.astro";
+import Markdown from "../components/Markdown.astro";
+import ProjectCard from "../components/ProjectCard.astro";
+import Terminal from "../components/Terminal.astro";
+import Base from "../layouts/Base.astro";
+import { plainText } from "../lib/markdown";
+import { groupProjects, projects } from "../lib/projects";
+import { site } from "../site.config";
+
+const featured = projects.find((project) => project.featured);
+const groups = groupProjects(projects.filter((project) => !project.featured));
+const agentReady = projects.filter((project) => project.mcp);
+
+const [mcpExample] = agentReady;
+const mcpConfig =
+  mcpExample &&
+  JSON.stringify(
+    {
+      mcpServers: {
+        [mcpExample.name]: {
+          command: "uvx",
+          args: ["--from", `${mcpExample.name}[mcp]`, mcpExample.name, "mcp"],
+        },
+      },
+    },
+    null,
+    2,
+  );
+
+// Structured data for search engines (schema.org). The alternate names match
+// searches for the GitHub spelling (open-nudge).
+const alternateNames = ["open-nudge", "open nudge"];
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${site.url}/#organization`,
+      name: site.name,
+      alternateName: alternateNames,
+      url: site.url,
+      logo: `${site.url}/apple-touch-icon.png`,
+      email: site.email,
+      sameAs: [site.links.github],
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${site.url}/#website`,
+      name: site.name,
+      alternateName: alternateNames,
+      url: site.url,
+      publisher: { "@id": `${site.url}/#organization` },
+    },
+    {
+      "@type": "ItemList",
+      name: site.projectDefaults.listTitle,
+      itemListElement: projects.map((project, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        item: {
+          "@type": "SoftwareSourceCode",
+          name: project.name,
+          description: plainText(project.description),
+          url: project.docs,
+          codeRepository: project.repo,
+          programmingLanguage: site.projectDefaults.language,
+          license: site.projectDefaults.license,
+        },
+      })),
+    },
+  ],
+};
+---
+
+<Base>
+  <script
+    slot="head"
+    type="application/ld+json"
+    set:html={JSON.stringify(jsonLd).replaceAll("<", "\\u003c")}
+  />
+  <section class="hero wrap">
+    <ul class="tags points">
+      {site.hero.points.map((point) => <li>{point}</li>)}
+    </ul>
+    <h1>
+      <Markdown inline text={site.hero.title} />
+      <span class="motto">{site.hero.motto}</span>
+    </h1>
+    <Markdown class="lead" text={site.hero.lead} />
+    <p class="actions">
+      {featured && (
+        <a class="button primary" href={`#${featured.name}`}>
+          {site.hero.action} <span class="arrow">↓</span>
+        </a>
+      )}
+      <a class="button" href={site.links.github}>{site.ui.github} <span class="arrow">→</span></a>
+    </p>
+    <dl class="spec">
+      {site.hero.spec.map((row) => (
+        <div>
+          <dt>{row.key}</dt>
+          <dd>
+            <strong>{row.value}</strong> <span>{row.note}</span>
+          </dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+
+  {featured && (
+    <section class="section" id={featured.name} aria-labelledby="start-here">
+      <div class="wrap">
+        <div class="featured">
+          <div>
+            <p class="eyebrow">{site.template.eyebrow}</p>
+            <h2 id="start-here">
+              <a href={featured.repo}>{featured.name}</a>
+            </h2>
+            <Markdown class="lead" text={featured.description} />
+            <Markdown class="muted" text={site.template.text} />
+            <ul class="tags">
+              {featured.tags.map((tag) => (
+                <li>{tag}</li>
+              ))}
+            </ul>
+          </div>
+          <div class="steps-box">
+            <ol class="steps">
+              {featured.steps?.map((step) => (
+                <li>
+                  <Markdown text={step} />
+                </li>
+              ))}
+            </ol>
+            <p class="actions">
+              <a class="button primary" href={site.template.url}>
+                {site.template.action} <span class="arrow">→</span>
+              </a>
+              <a class="button" href={featured.docs}>
+                {site.ui.docs}
+              </a>
+            </p>
+          </div>
+        </div>
+        <dl class="features">
+          {site.template.features.map((feature) => (
+            <div>
+              <dt>
+                <Markdown inline text={feature.title} />
+              </dt>
+              <dd>
+                <Markdown text={feature.text} />
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <div class="verify">
+          <div class="verify-intro">
+            <strong>
+              <Markdown inline text={site.template.verify.title} />
+            </strong>{" "}
+            <Markdown class="muted" text={site.template.verify.text} />
+          </div>
+          <CodeBlock code={site.template.verify.command} lang="sh" />
+        </div>
+      </div>
+    </section>
+  )}
+
+  <section class="section" id="agents" aria-labelledby="agents-title">
+    <div class="wrap agents">
+      <div>
+        <p class="eyebrow">{site.agents.eyebrow}</p>
+        <h2 id="agents-title"><Markdown inline text={site.agents.title} /></h2>
+        <Markdown text={site.agents.text} />
+        <Markdown class="muted" text={site.agents.note} />
+      </div>
+      <div class="agent-cmds">
+        {agentReady.map((project) => (
+          <Terminal command={project.mcp ?? ""} label={`${project.name}: ${site.agents.commandLabel}`} />
+        ))}
+        {mcpConfig && (
+          <div class="cmd-config">
+            <span class="label">{site.agents.configLabel}</span>
+            <CodeBlock code={mcpConfig} lang="json" />
+          </div>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="projects" aria-label={site.projects.label}>
+    <div class="wrap">
+      {groups.map((group) => (
+        <div class="group" id={group.id}>
+          <div class="section-head">
+            <h2>
+              <Markdown inline text={group.title} />
+            </h2>
+            <Markdown text={group.text} />
+          </div>
+          <div class="projects">
+            {group.projects.map((project) => (
+              <ProjectCard project={project} />
+            ))}
+          </div>
+        </div>
+      ))}
+      <p class="ships">
+        <span class="muted">{site.projects.ships}</span>
+        {site.projects.benefits.map((benefit) => <span>{benefit}</span>)}
+      </p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="nudges-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="nudges-title"><Markdown inline text={site.nudgeSection.title} /></h2>
+        <Markdown text={site.nudgeSection.text} />
+      </div>
+      <ol class="nudges">
+        {site.nudges.map((nudge) => (
+          <li>
+            <h3>
+              <Markdown inline text={nudge.title} />
+            </h3>
+            <Markdown text={nudge.text} />
+            <p class="refs">
+              {nudge.projects.map((name) => (
+                <a href={`#${name}`}>{name}</a>
+              ))}
+              {nudge.link && (
+                <a href={nudge.link.href}>
+                  {nudge.link.label} <span class="arrow">→</span>
+                </a>
+              )}
+            </p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" id="about" aria-labelledby="about-title">
+    <div class="wrap about">
+      <div>
+        <p class="eyebrow">{site.identity.eyebrow}</p>
+        <h2 id="about-title"><Markdown inline text={site.identity.title} /></h2>
+        <Markdown class="lead" text={site.identity.mission} />
+        <Markdown class="muted" text={site.identity.vision} />
+      </div>
+      <dl class="values">
+        {site.identity.values.map((value) => (
+          <div>
+            <dt>{value.name}</dt>
+            <dd>
+              <Markdown text={value.text} />
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+</Base>
+
+<style>
+.hero {
+  padding-block: clamp(3rem, 10vw, 6.5rem) clamp(2.5rem, 6vw, 4rem);
+}
+
+.points {
+  margin-bottom: 1.25rem;
+}
+
+.motto {
+  display: block;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1.75rem 0 0;
+}
+
+/* spec sheet: a raised box of cells, small keys, large values. Each cell
+     draws its dividers into the 1px gaps (box-shadow); the outer ones are
+     clipped. Only --surface sits behind the rounded corners, so they stay
+     clean (a darker background would bleed through them).
+     Four cells: one row on wide screens, 2 × 2 below (auto-fit would
+     leave a lone cell on a second row). */
+.spec {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  max-width: 60rem;
+  margin: 2.75rem 0 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--raised);
+  overflow: hidden;
+}
+
+@media (min-width: 56rem) {
+  .spec {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.spec div {
+  padding: 0.8rem 1.1rem 0.9rem;
+  box-shadow: 0 0 0 1px var(--divider);
+}
+
+.spec dt {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.spec dd {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.spec strong {
+  display: block;
+  color: var(--text);
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.featured {
+  display: grid;
+  gap: 2rem 3rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  align-items: start;
+}
+
+.featured h2 a {
+  text-decoration: none;
+}
+
+.steps-box {
+  padding: 1.25rem 1.4rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--raised);
+}
+
+.steps {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.steps li::marker {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* what every generated repository gets: like the values list, in columns */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+  gap: 1.25rem 1.5rem;
+  margin: 2.75rem 0 0;
+}
+
+.features div {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+}
+
+.features dt {
+  font-weight: 700;
+}
+
+.features dd {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.verify {
+  margin-top: 2.5rem;
+  max-width: 52rem;
+}
+
+.verify-intro {
+  margin-bottom: 0.6rem;
+}
+
+.verify :global(pre) {
+  margin: 0;
+}
+
+/* wide enough for the install commands to fit on one line */
+.projects {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+}
+
+.group + .group {
+  margin-top: 3.25rem;
+}
+
+.ships {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  margin: 2.75rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--line);
+  font-size: 0.85rem;
+}
+
+.agents {
+  display: grid;
+  gap: 2rem 3rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  align-items: start;
+}
+
+.agent-cmds {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.cmd-config {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.cmd-config .label {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.cmd-config :global(pre) {
+  margin: 0;
+  font-size: 0.86rem;
+}
+
+.nudges {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  counter-reset: nudge;
+}
+
+.nudges li {
+  padding: 1.25rem 1.35rem;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  counter-increment: nudge;
+}
+
+.nudges h3::before {
+  content: counter(nudge, decimal-leading-zero);
+  margin-right: 0.45em;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.nudges :global(.prose) {
+  text-wrap: pretty;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.nudges .refs {
+  margin-bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.9rem;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.about {
+  display: grid;
+  gap: 2rem 3rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  align-items: start;
+}
+
+.values {
+  margin: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.values div {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.values dt {
+  font-weight: 700;
+}
+
+.values dd {
+  margin: 0.15rem 0 0;
+  color: var(--muted);
+}
+
+.verify-intro :global(.prose),
+.verify-intro :global(.prose > p) {
+  display: inline;
+}
+</style>

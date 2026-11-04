@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+# SPDX-License-Identifier: Apache-2.0
+
+# Spelling of every tracked file (prek: codespell)
+[codespell]
+skip = package-lock.json,*.svg
+check-filenames = true
+interactive = 0
