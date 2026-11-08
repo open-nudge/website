@@ -2,34 +2,68 @@
 // SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
 // SPDX-License-Identifier: Apache-2.0
 
-import CodeBlock from "../components/CodeBlock.astro";
+import type { SvgComponent } from "astro/types";
+import antigravity from "../assets/agents/antigravity.svg";
+import claude from "../assets/agents/claude.svg";
+import codex from "../assets/agents/codex.svg";
+import opencode from "../assets/agents/opencode.svg";
+import pi from "../assets/agents/pi.svg";
+import Arrow from "../components/Arrow.astro";
 import Markdown from "../components/Markdown.astro";
 import ProjectCard from "../components/ProjectCard.astro";
+import Spec from "../components/Spec.astro";
+import Switch from "../components/Switch.astro";
+import Tabs from "../components/Tabs.astro";
 import Terminal from "../components/Terminal.astro";
 import Base from "../layouts/Base.astro";
 import { plainText } from "../lib/markdown";
-import { groupProjects, projects } from "../lib/projects";
+import { agentReady, groupProjects, projectLink, projects } from "../lib/projects";
 import { site } from "../site.config";
 
 const featured = projects.find((project) => project.featured);
 const groups = groupProjects(projects.filter((project) => !project.featured));
-const agentReady = projects.filter((project) => project.mcp);
 
+// Each section shows only when its site.yaml block is there (and it has
+// something to show); the hero, the tabs and the footer follow.
+const template = featured && site.template;
+const agents = agentReady.length > 0 && site.agents;
+const nudgeSection = site.nudges.length > 0 && site.nudgeSection;
+const { identity, hero } = site;
+const phone = { lead: hero.phone?.lead ?? hero.lead, points: hero.phone?.points ?? hero.points };
+// phones: the featured project's shorter steps, tags and text (each falls back
+// to the desktop one)
+const phoneFeatured = {
+  steps: featured?.phone?.steps ?? featured?.steps,
+  tags: featured?.phone?.tags ?? featured?.tags ?? [],
+  text: template ? (template.phone?.text ?? template.text) : undefined,
+};
+
+// Phones show one section at a time, switched by tabs (Tabs.astro); wider
+// screens show them all, one after another.
+const sections = [
+  ...(featured && template ? [{ id: featured.name, tab: template.tab }] : []),
+  ...(agents ? [{ id: "agents", tab: agents.tab }] : []),
+  ...groups.map((group) => ({ id: group.id, tab: group.tab })),
+  ...(nudgeSection ? [{ id: "nudges", tab: nudgeSection.tab }] : []),
+  ...(identity ? [{ id: "values", tab: identity.tab }] : []),
+];
+const [firstSection] = sections;
+
+// The agent switch: the command adding the MCP server to each agent CLI.
 const [mcpExample] = agentReady;
-const mcpConfig =
-  mcpExample &&
-  JSON.stringify(
-    {
-      mcpServers: {
-        [mcpExample.name]: {
-          command: "uvx",
-          args: ["--from", `${mcpExample.name}[mcp]`, mcpExample.name, "mcp"],
-        },
-      },
-    },
-    null,
-    2,
-  );
+// Each agent's logo (src/assets/agents, see REUSE.toml), beside its name.
+const agentIcons: Record<keyof NonNullable<typeof site.agents>["clients"], SvgComponent> = {
+  claude,
+  codex,
+  opencode,
+  pi,
+  antigravity,
+};
+const agentOptions = Object.entries(agents ? agents.clients : {}).map(([value, label]) => ({
+  value,
+  label,
+  icon: agentIcons[value as keyof typeof agentIcons],
+}));
 
 // Structured data for search engines (schema.org). The alternate names match
 // searches for the GitHub spelling (open-nudge).
@@ -83,122 +117,156 @@ const jsonLd = {
     set:html={JSON.stringify(jsonLd).replaceAll("<", "\\u003c")}
   />
   <section class="hero wrap">
-    <ul class="tags points">
-      {site.hero.points.map((point) => <li>{point}</li>)}
+    {/* phones get fewer tags and a shorter lead (site.yaml: hero.phone) */}
+    <ul class="tags points only-desktop">
+      {hero.points.map((point) => <li>{point}</li>)}
+    </ul>
+    <ul class="tags points only-phone">
+      {phone.points.map((point) => <li>{point}</li>)}
     </ul>
     <h1>
       <Markdown inline text={site.hero.title} />
       <span class="motto">{site.hero.motto}</span>
     </h1>
-    <Markdown class="lead" text={site.hero.lead} />
+    <Markdown class="lead only-desktop" text={hero.lead} />
+    <Markdown class="lead only-phone" text={phone.lead} />
     <p class="actions">
-      {featured && (
-        <a class="button primary" href={`#${featured.name}`}>
-          {site.hero.action} <span class="arrow">↓</span>
+      {firstSection && (
+        <a class="button primary" href={`#${firstSection.id}`}>
+          {hero.action} <Arrow direction="down" bounce />
         </a>
       )}
-      <a class="button" href={site.links.github}>{site.ui.github} <span class="arrow">→</span></a>
+      <a class="button" href={site.links.github}>{site.ui.github} <Arrow direction="right" bounce /></a>
     </p>
-    <dl class="spec">
-      {site.hero.spec.map((row) => (
-        <div>
-          <dt>{row.key}</dt>
-          <dd>
-            <strong>{row.value}</strong> <span>{row.note}</span>
-          </dd>
-        </div>
-      ))}
-    </dl>
+    <Spec rows={hero.spec} />
   </section>
 
-  {featured && (
-    <section class="section" id={featured.name} aria-labelledby="start-here">
-      <div class="wrap">
-        <div class="featured">
-          <div>
-            <p class="eyebrow">{site.template.eyebrow}</p>
-            <h2 id="start-here">
-              <a href={featured.repo}>{featured.name}</a>
-            </h2>
-            <Markdown class="lead" text={featured.description} />
-            <Markdown class="muted" text={site.template.text} />
-            <ul class="tags">
-              {featured.tags.map((tag) => (
-                <li>{tag}</li>
-              ))}
-            </ul>
-          </div>
-          <div class="steps-box">
-            <ol class="steps">
-              {featured.steps?.map((step) => (
-                <li>
-                  <Markdown text={step} />
-                </li>
-              ))}
-            </ol>
-            <p class="actions">
-              <a class="button primary" href={site.template.url}>
-                {site.template.action} <span class="arrow">→</span>
-              </a>
-              <a class="button" href={featured.docs}>
-                {site.ui.docs}
-              </a>
-            </p>
-          </div>
-        </div>
-        <dl class="features">
-          {site.template.features.map((feature) => (
+  {sections.length > 0 && <Tabs sections={sections} />}
+
+  <div class="panels">
+    {featured && template && (
+      <section class="section" id={featured.name} data-panel aria-labelledby="start-here">
+        <div class="wrap">
+          <div class="featured">
             <div>
-              <dt>
-                <Markdown inline text={feature.title} />
-              </dt>
-              <dd>
-                <Markdown text={feature.text} />
-              </dd>
+              {template.eyebrow && <p class="eyebrow">{template.eyebrow}</p>}
+              <h2 id="start-here">
+                <a href={featured.repo}>{featured.name}</a>
+              </h2>
+              <Markdown class="lead" text={featured.description} />
+              {template.text && <Markdown class="muted only-desktop" text={template.text} />}
+              {phoneFeatured.text && <Markdown class="muted only-phone" text={phoneFeatured.text} />}
+              <ul class="tags only-desktop">
+                {featured.tags.map((tag) => (
+                  <li>{tag}</li>
+                ))}
+              </ul>
+              <ul class="tags only-phone">
+                {phoneFeatured.tags.map((tag) => (
+                  <li>{tag}</li>
+                ))}
+              </ul>
             </div>
-          ))}
-        </dl>
-        <div class="verify">
-          <div class="verify-intro">
-            <strong>
-              <Markdown inline text={site.template.verify.title} />
-            </strong>{" "}
-            <Markdown class="muted" text={site.template.verify.text} />
+            <div class="steps-box">
+              <ol class="steps only-desktop">
+                {featured.steps?.map((step) => (
+                  <li>
+                    <Markdown text={step} />
+                  </li>
+                ))}
+              </ol>
+              <ol class="steps only-phone">
+                {phoneFeatured.steps?.map((step) => (
+                  <li>
+                    <Markdown text={step} />
+                  </li>
+                ))}
+              </ol>
+              <p class="actions">
+                <a class="button primary" href={template.url}>
+                  {template.action} <Arrow direction="right" bounce />
+                </a>
+                <a class="button" href={featured.docs}>
+                  {site.ui.docs}
+                </a>
+              </p>
+            </div>
           </div>
-          <CodeBlock code={site.template.verify.command} lang="sh" />
+          {template.verify && (
+            <div class="verify">
+              <div class="verify-intro">
+                <strong>
+                  <Markdown inline text={template.verify.title} />
+                </strong>{" "}
+                <Markdown class="muted" text={template.verify.text} />
+              </div>
+              <div class="only-desktop">
+                <Terminal command={template.verify.command} />
+              </div>
+              <div class="only-phone">
+                <Terminal command={template.verify.phoneCommand ?? template.verify.command} />
+              </div>
+            </div>
+          )}
         </div>
-      </div>
-    </section>
-  )}
+      </section>
+    )}
 
-  <section class="section" id="agents" aria-labelledby="agents-title">
-    <div class="wrap agents">
-      <div>
-        <p class="eyebrow">{site.agents.eyebrow}</p>
-        <h2 id="agents-title"><Markdown inline text={site.agents.title} /></h2>
-        <Markdown text={site.agents.text} />
-        <Markdown class="muted" text={site.agents.note} />
-      </div>
-      <div class="agent-cmds">
-        {agentReady.map((project) => (
-          <Terminal command={project.mcp ?? ""} label={`${project.name}: ${site.agents.commandLabel}`} />
-        ))}
-        {mcpConfig && (
-          <div class="cmd-config">
-            <span class="label">{site.agents.configLabel}</span>
-            <CodeBlock code={mcpConfig} lang="json" />
+    {agents && (
+      <section class="section" id="agents" data-panel aria-labelledby="agents-title">
+        <div class="wrap agents">
+          <div>
+            <h2 id="agents-title">
+              <Markdown inline text={agents.title} />
+            </h2>
+            <Markdown class="only-desktop" text={agents.text} />
+            <Markdown class="only-phone" text={agents.phone?.text ?? agents.text} />
+            {/* desktop only: on phones it sits below the text */}
+            {agents.note && <Markdown class="muted only-desktop" text={agents.note} />}
           </div>
-        )}
-      </div>
-    </div>
-  </section>
+          <div class="agent-cmds">
+            {/* phones: the commands split over more lines (projects.ts) */}
+            {agentReady.map((project) => (
+              <>
+                <div class="only-desktop">
+                  <Terminal
+                    command={project.mcp ?? ""}
+                    label={`${project.name}: ${agents.commandLabel}`}
+                    wrap
+                  />
+                </div>
+                <div class="only-phone">
+                  <Terminal
+                    command={project.phoneMcp ?? ""}
+                    label={`${project.name}: ${agents.commandLabel}`}
+                  />
+                </div>
+              </>
+            ))}
+            {mcpExample?.mcpAdd && mcpExample.phoneMcpAdd && (
+              <div class="agent-add">
+                <div class="only-desktop">
+                  <Terminal command={mcpExample.mcpAdd} switch="agent" label={agents.addLabel} />
+                </div>
+                <div class="only-phone">
+                  <Terminal command={mcpExample.phoneMcpAdd} switch="agent" label={agents.addLabel} />
+                </div>
+                <Switch name="agent" label={agents.switchLabel} options={agentOptions} stretch />
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    )}
 
-  <section class="section" id="projects" aria-label={site.projects.label}>
-    <div class="wrap">
-      {groups.map((group) => (
-        <div class="group" id={group.id}>
+    {/* One section per group, so phones can tab between them; wider screens
+        show them as one (the styles below). Each ends with the "ships with"
+        line: wider screens keep only the last one. */}
+    {groups.map((group) => (
+      <section class="section group" id={group.id} data-panel aria-labelledby={`${group.id}-title`}>
+        <div class="wrap">
           <div class="section-head">
-            <h2>
+            <h2 id={`${group.id}-title`}>
               <Markdown inline text={group.title} />
             </h2>
             <Markdown text={group.text} />
@@ -208,79 +276,120 @@ const jsonLd = {
               <ProjectCard project={project} />
             ))}
           </div>
-        </div>
-      ))}
-      <p class="ships">
-        <span class="muted">{site.projects.ships}</span>
-        {site.projects.benefits.map((benefit) => <span>{benefit}</span>)}
-      </p>
-    </div>
-  </section>
-
-  <section class="section" aria-labelledby="nudges-title">
-    <div class="wrap">
-      <div class="section-head">
-        <h2 id="nudges-title"><Markdown inline text={site.nudgeSection.title} /></h2>
-        <Markdown text={site.nudgeSection.text} />
-      </div>
-      <ol class="nudges">
-        {site.nudges.map((nudge) => (
-          <li>
-            <h3>
-              <Markdown inline text={nudge.title} />
-            </h3>
-            <Markdown text={nudge.text} />
-            <p class="refs">
-              {nudge.projects.map((name) => (
-                <a href={`#${name}`}>{name}</a>
+          {/* desktop only */}
+          {site.projects && (
+            <p class="ships only-desktop">
+              <span class="muted">{site.projects.ships}</span>
+              {site.projects.benefits.map((benefit) => (
+                <span>{benefit}</span>
               ))}
-              {nudge.link && (
-                <a href={nudge.link.href}>
-                  {nudge.link.label} <span class="arrow">→</span>
-                </a>
-              )}
             </p>
-          </li>
-        ))}
-      </ol>
-    </div>
-  </section>
+          )}
+        </div>
+      </section>
+    ))}
 
-  <section class="section" id="about" aria-labelledby="about-title">
-    <div class="wrap about">
-      <div>
-        <p class="eyebrow">{site.identity.eyebrow}</p>
-        <h2 id="about-title"><Markdown inline text={site.identity.title} /></h2>
-        <Markdown class="lead" text={site.identity.mission} />
-        <Markdown class="muted" text={site.identity.vision} />
-      </div>
-      <dl class="values">
-        {site.identity.values.map((value) => (
-          <div>
-            <dt>{value.name}</dt>
-            <dd>
-              <Markdown text={value.text} />
-            </dd>
+    {nudgeSection && (
+      <section class="section" id="nudges" data-panel aria-labelledby="nudges-title">
+        <div class="wrap">
+          <div class="section-head">
+            <h2 id="nudges-title">
+              <Markdown inline text={nudgeSection.title} />
+            </h2>
+            <Markdown text={nudgeSection.text} />
           </div>
-        ))}
-      </dl>
-    </div>
-  </section>
+          <ol class="nudges">
+            {site.nudges.map((nudge) => (
+              <li>
+                <h3>
+                  <Markdown inline text={nudge.title} />
+                </h3>
+                <Markdown text={nudge.text} />
+                <p class="refs">
+                  {nudge.projects.map((name) => (
+                    <a href={projectLink(name)}>{name}</a>
+                  ))}
+                  {nudge.link && (
+                    <a href={nudge.link.href}>
+                      {nudge.link.label} <span class="arrow">→</span>
+                    </a>
+                  )}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+    )}
+
+    {identity && (
+      <section class="section" id="values" data-panel aria-labelledby="values-title">
+        <div class="wrap about">
+          <div>
+            {identity.eyebrow && <p class="eyebrow">{identity.eyebrow}</p>}
+            <h2 id="values-title">
+              <Markdown inline text={identity.title} />
+            </h2>
+            {identity.mission && <Markdown class="lead" text={identity.mission} />}
+            {identity.vision && <Markdown class="muted" text={identity.vision} />}
+          </div>
+          {identity.values.length > 0 && (
+            <dl class="values">
+              {identity.values.map((value) => (
+                <div>
+                  <dt>{value.name}</dt>
+                  <dd>
+                    <Markdown text={value.text} />
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </div>
+      </section>
+    )}
+  </div>
+
+  <!-- Phones, before the first paint: only the section the URL names (or
+       holds: #lintkit) is shown, else the first, so a deep link never
+       flashes the long page. src/scripts/tabs.ts takes over from here. -->
+  <script is:inline>
+  (() => {
+    if (!matchMedia("(max-width: 40rem)").matches) {
+      return;
+    }
+    const panels = [...document.querySelectorAll("[data-panel]")];
+    const id = decodeURIComponent(location.hash.slice(1));
+    const named = id ? document.getElementById(id)?.closest("[data-panel]") : null;
+    const open = named ? named.id : panels[0]?.id;
+    for (const panel of panels) {
+      panel.hidden = panel.id !== open;
+    }
+    document.querySelector(".panels")?.setAttribute("data-tabbed", "");
+  })();
+  </script>
 </Base>
 
 <style>
+/* desktop: a tenth of the screen's height more room between the top bar and
+   the tags, so the hero sits lower (phones set their own padding below) */
 .hero {
-  padding-block: clamp(3rem, 10vw, 6.5rem) clamp(2.5rem, 6vw, 4rem);
+  padding-block: calc(clamp(2.25rem, 10vw, 6.5rem) + 10vh) clamp(2.25rem, 6vw, 4rem);
 }
 
 .points {
   margin-bottom: 1.25rem;
 }
 
+/* a quiet subtitle under the title: the lead's size, as on maszke.co */
 .motto {
   display: block;
+  margin-top: 0.375rem;
   color: var(--muted);
+  font-size: clamp(1.0625rem, 2vw, 1.125rem);
   font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.35;
 }
 
 .actions {
@@ -290,57 +399,17 @@ const jsonLd = {
   margin: 1.75rem 0 0;
 }
 
-/* spec sheet: a raised box of cells, small keys, large values. Each cell
-     draws its dividers into the 1px gaps (box-shadow); the outer ones are
-     clipped. Only --surface sits behind the rounded corners, so they stay
-     clean (a darker background would bleed through them).
-     Four cells: one row on wide screens, 2 × 2 below (auto-fit would
-     leave a lone cell on a second row). */
-.spec {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1px;
-  max-width: 60rem;
-  margin: 2.75rem 0 0;
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--raised);
-  overflow: hidden;
-}
-
-@media (min-width: 56rem) {
-  .spec {
-    grid-template-columns: repeat(4, 1fr);
+/* phones: the buttons share the row as wide capsules, easy to reach with a
+   thumb, instead of a ragged wrap */
+@media (max-width: 30rem) {
+  .actions :global(.button) {
+    flex: 1 1 auto;
   }
 }
 
-.spec div {
-  padding: 0.8rem 1.1rem 0.9rem;
-  box-shadow: 0 0 0 1px var(--divider);
-}
-
-.spec dt {
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-
-.spec dd {
-  margin: 0.2rem 0 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.35;
-}
-
-.spec strong {
-  display: block;
-  color: var(--text);
-  font-size: 1.6rem;
-  font-weight: 700;
-  line-height: 1.2;
-  font-variant-numeric: tabular-nums;
-}
-
-.featured {
+.featured,
+.agents,
+.about {
   display: grid;
   gap: 2rem 3rem;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
@@ -370,40 +439,12 @@ const jsonLd = {
   font-variant-numeric: tabular-nums;
 }
 
-/* what every generated repository gets: like the values list, in columns */
-.features {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
-  gap: 1.25rem 1.5rem;
-  margin: 2.75rem 0 0;
-}
-
-.features div {
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--line);
-}
-
-.features dt {
-  font-weight: 700;
-}
-
-.features dd {
-  margin: 0.2rem 0 0;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
 .verify {
   margin-top: 2.5rem;
-  max-width: 52rem;
 }
 
 .verify-intro {
   margin-bottom: 0.6rem;
-}
-
-.verify :global(pre) {
-  margin: 0;
 }
 
 /* wide enough for the install commands to fit on one line */
@@ -413,8 +454,20 @@ const jsonLd = {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
 }
 
-.group + .group {
-  margin-top: 3.25rem;
+/* Wider screens (and phones without scripts) show the groups as one
+   section: no line or section padding between them, only the last group's
+   "ships with" line. */
+.panels:not([data-tabbed]) .group:has(+ .group) {
+  padding-bottom: 0;
+}
+
+.panels:not([data-tabbed]) .group + .group {
+  border-top: 0;
+  padding-top: 3.25rem;
+}
+
+.panels:not([data-tabbed]) .group:has(+ .group) .ships {
+  display: none;
 }
 
 .ships {
@@ -428,33 +481,23 @@ const jsonLd = {
   font-size: 0.85rem;
 }
 
-.agents {
-  display: grid;
-  gap: 2rem 3rem;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
-  align-items: start;
-}
-
 .agent-cmds {
   display: grid;
   gap: 1rem;
   min-width: 0;
 }
 
-.cmd-config {
+/* the command, then the agent switch below it (on its own, not in the box,
+   as wide as it) */
+.agent-add {
   display: grid;
-  gap: 0.3rem;
+  gap: 0.6rem;
   min-width: 0;
 }
 
-.cmd-config .label {
-  font-size: 0.78rem;
-  color: var(--muted);
-}
-
-.cmd-config :global(pre) {
-  margin: 0;
-  font-size: 0.86rem;
+/* the desktop / phone wrappers shrink as the commands in them do */
+.agent-cmds :is(.only-desktop, .only-phone) {
+  min-width: 0;
 }
 
 .nudges {
@@ -485,27 +528,18 @@ const jsonLd = {
 
 .nudges :global(.prose) {
   text-wrap: pretty;
-  margin: 0;
   color: var(--muted);
   font-size: 0.95rem;
 }
 
 .nudges .refs {
-  margin-bottom: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.25rem 0.9rem;
-  margin-top: 0.75rem;
+  margin: 0.75rem 0 0;
   font-size: 0.85rem;
   color: var(--text);
-}
-
-.about {
-  display: grid;
-  gap: 2rem 3rem;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
-  align-items: start;
 }
 
 .values {
@@ -531,5 +565,102 @@ const jsonLd = {
 .verify-intro :global(.prose),
 .verify-intro :global(.prose > p) {
   display: inline;
+}
+
+/* ---- phones: one section at a time (src/scripts/tabs.ts) */
+
+/* under the tab bar: no line above the section (the bar draws its own),
+   less room, and no eyebrow (the tab names the section) */
+.panels[data-tabbed] > .section {
+  border-top: 0;
+  padding-block: 1.25rem 2.5rem;
+}
+
+.panels[data-tabbed] .eyebrow {
+  display: none;
+}
+
+/* swiped sideways between sections (src/scripts/swipe.ts); the page keeps
+   vertical scrolling and pinch-zoom (off while zoomed in: tabs.ts), and a
+   section sliding out is cut at the screen's edge */
+.panels[data-swipe] {
+  position: relative;
+  overflow-x: clip;
+  touch-action: pan-y pinch-zoom;
+}
+
+/* panels are focusable (tabs.ts) for screen readers, not for the eye */
+[data-panel]:focus {
+  outline: none;
+}
+
+/* ---- phones (max-width: 40rem, as the tabs): the hero takes most of
+   the first screen, down to the section tabs (spare room at the top, then
+   tags, title, motto, the short lead and the spec box; no buttons), and GitHub's
+   mobile sizes */
+@media (max-width: 40rem) {
+  .hero {
+    display: flex;
+    flex-direction: column;
+    /* the content (about --content tall on a 390px wide phone) and a share
+       (--spare) of the room left above the tabs, so the tabs sit higher and
+       the first section peeks in under them; never less than the content */
+    --content: 30.5rem;
+    --spare: 0.6;
+    min-height: calc(var(--content) + var(--spare) * (100svh - var(--header) - var(--tabs) - var(--content)));
+    padding-block: 1.75rem 1.5rem;
+  }
+
+  .hero .actions {
+    display: none;
+  }
+
+  .points {
+    margin-bottom: 1rem;
+  }
+
+  .hero h1 {
+    margin-bottom: 1.5rem;
+  }
+
+  /* the spare height goes above the tags, so the whole hero sits at the
+     bottom of its box: the spec box right above the section tabs */
+  .hero .points {
+    margin-top: auto;
+  }
+
+  .hero :global(.lead) {
+    margin: 0 0 1.5rem;
+  }
+
+  .actions {
+    margin-top: 1.25rem;
+  }
+
+  .featured {
+    gap: 1.5rem;
+  }
+
+  /* the note is desktop only: nothing below the text, so no margin under
+     it, and the commands as close as in "start here" */
+  .agents {
+    gap: 1.5rem;
+  }
+
+  .agents :global(.prose) {
+    margin-bottom: 0;
+  }
+
+  .verify {
+    margin-top: 2rem;
+  }
+
+  .nudges li {
+    padding: 1rem 1.15rem;
+  }
+
+  .nudges .refs {
+    font-size: 0.875rem;
+  }
 }
 </style>

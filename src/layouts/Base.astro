@@ -10,6 +10,7 @@ import { site } from "../site.config";
 interface Props {
   /** Page title; the site name is appended automatically. */
   title?: string;
+  /** Keep the page out of search engines (404), instead of a canonical link. */
   noindex?: boolean;
 }
 
@@ -24,13 +25,13 @@ const imageUrl = new URL("/og.png", Astro.site);
 <html lang={site.language}>
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{fullTitle}</title>
     <meta name="description" content={site.description}>
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
 
-    <!-- Apply stored choices before the first paint (no flash): light/dark
-         and uv/pip. -->
+    <!-- Apply stored choices before the first paint (no flash): light/dark,
+         uv/pip and the agent (<Switch>, src/scripts/switch.ts). -->
     <script is:inline>
     try {
       const root = document.documentElement;
@@ -41,13 +42,17 @@ const imageUrl = new URL("/og.png", Astro.site);
       if (localStorage.getItem("installer") === "pip") {
         root.dataset.installer = "pip";
       }
+      const agent = localStorage.getItem("agent");
+      if (["codex", "opencode", "pi", "antigravity"].includes(agent)) {
+        root.dataset.agent = agent;
+      }
     } catch {
-      // storage unavailable (private mode): follow the OS setting and uv
+      // storage unavailable (private mode): follow the OS setting, uv and Claude
     }
     </script>
     <meta name="color-scheme" content="light dark">
-    <meta name="theme-color" content="#e4e4e4" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#262626" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#f1f3f4" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#353739" media="(prefers-color-scheme: dark)">
 
     <link rel="icon" href="/favicon.ico" sizes="32x32">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -56,6 +61,7 @@ const imageUrl = new URL("/og.png", Astro.site);
     <slot name="head" />
 
     <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_US">
     <meta property="og:site_name" content={site.name}>
     <meta property="og:title" content={fullTitle}>
     <meta property="og:description" content={site.description}>
@@ -65,6 +71,9 @@ const imageUrl = new URL("/og.png", Astro.site);
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content={`${site.name}: ${site.hero.motto}`}>
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content={fullTitle}>
+    <meta name="twitter:description" content={site.description}>
+    <meta name="twitter:image" content={imageUrl}>
   </head>
   <body>
     <a class="skip" href="#main">{site.ui.skip}</a>

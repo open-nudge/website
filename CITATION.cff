@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+# SPDX-License-Identifier: Apache-2.0
+
+---
+cff-version: "1.2.0"
+abstract: >
+  Source of opennudge.com, the website of open-nudge (Astro).
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: "Maszke"
+    given-names: "Szymon"
+url: "https://opennudge.com"
+repository-code: "https://github.com/open-nudge/website"
+title: "opennudge.com"
+license: "Apache-2.0"
+keywords:
+  - "website"
+  - "astro"
+  - "open-source"

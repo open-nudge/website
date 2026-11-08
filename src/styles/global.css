@@ -2,9 +2,11 @@
  * SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
  * SPDX-License-Identifier: Apache-2.0
  *
- * opennudge design tokens + base styles. See BRAND.md.
- * The interface is grayscale (R = G = B), never pure black or white.
- * Color appears in one place only: highlighted code (src/lib/code.ts).
+ * opennudge design tokens + base styles.
+ * The interface uses the greys of Chrome on iOS (Chromium's iOS color
+ * assets), so the page sits seamlessly under the browser's toolbars. No
+ * accent color, never pure black or white: color appears in one place only,
+ * highlighted code (src/lib/code.ts).
  */
 
 /* ---------------------------------------------------------------- tokens */
@@ -14,38 +16,63 @@
 :root {
   color-scheme: light dark;
 
-  --bg: light-dark(#e4e4e4, #262626);
-  --surface: light-dark(#f1f1f1, #303030); /* cards, code: raised above --bg */
-  --text: light-dark(#323232, #dcdcdc); /* #323232 is the logo charcoal */
-  --muted: light-dark(#5e5e5e, #a3a3a3);
-  --line: light-dark(#c8c8c8, #3d3d3d);
-  --line-strong: light-dark(#a6a6a6, #5a5a5a);
-  --fill: color-mix(in srgb, var(--text) 9%, transparent); /* pills, tiles, tracks */
-  --fill-strong: color-mix(in srgb, var(--text) 15%, transparent); /* their hover */
-  --shadow: light-dark(rgb(28 28 28 / 0.18), rgb(0 0 0 / 0.55)); /* hover lift */
+  /* Chrome iOS names: grey_100 / background_color (the dark toolbar) */
+  --bg: light-dark(#f1f3f4, #353739);
+  /* cards, code: raised above --bg (grey_50) */
+  --surface: light-dark(#f8f9fa, #3c4043);
+  /* between grey_800 and grey_700 (Google Search's body grey): softer on the
+     eyes than grey_800, still about 7:1 on --bg */
+  --text: light-dark(#4d5156, #e8eaed); /* - / toolbar_button_color */
+  --muted: light-dark(#5f6368, #bdc1c6); /* grey_700 / grey_500 */
+  --line: light-dark(#dadce0, #474c50); /* grey_300 / separator_color */
+  --line-strong: light-dark(#9aa0a6, #5f6368); /* grey_500 / grey_200 */
+  /* primaries and selected states: the other mode's box, its surface and
+     its text (dark in light mode, light in dark mode) */
+  --inverse: light-dark(#3c4043, #f8f9fa);
+  --on-inverse: light-dark(#e8eaed, #4d5156);
+  --inverse-hover: color-mix(in srgb, var(--inverse) 85%, var(--bg));
+  --shadow: light-dark(rgb(60 64 67 / 0.2), rgb(0 0 0 / 0.5)); /* hover lift */
 
-  /* Boxes are "raised": a lighter surface, a faint 1px ring and a soft
-     shadow, instead of a hard gray border (whose rounded corners show their
-     pixels). Lines inside a box use the opaque --divider. */
-  --ring: light-dark(rgb(28 28 28 / 0.09), rgb(255 255 255 / 0.08));
-  --ring-strong: light-dark(rgb(28 28 28 / 0.16), rgb(255 255 255 / 0.14));
-  --soft: light-dark(rgb(28 28 28 / 0.08), rgb(0 0 0 / 0.4));
+  /* Everything that isn't the page is "raised": boxes, buttons, tab tracks,
+     tags, code and terminals alike, on the page or inside a box. One lighter
+     surface, a faint 1px ring and a soft shadow, instead of a hard gray
+     border (whose rounded corners show their pixels). Lines inside a box use
+     the opaque --divider. */
+  --surface-hover: color-mix(in srgb, var(--text) 6%, var(--surface)); /* raised controls' hover */
+  --ring: light-dark(rgb(60 64 67 / 0.1), rgb(255 255 255 / 0.07));
+  --ring-strong: light-dark(rgb(60 64 67 / 0.18), rgb(255 255 255 / 0.13));
+  --soft: light-dark(rgb(60 64 67 / 0.1), rgb(0 0 0 / 0.3));
   --raised: 0 0 0 1px var(--ring), 0 1px 2px var(--soft), 0 2px 6px -2px var(--soft);
   --divider: color-mix(in srgb, var(--text) 12%, var(--surface));
+
+  /* Syntax colors (src/lib/shell.ts, in terminals): One Light / One Dark,
+     darkened / lifted (HSL lightness only) to at least 4.6:1 on --surface. */
+  --code-fg: light-dark(#383a42, #abb2bf); /* arguments, subcommands, paths */
+  --code-cmd: light-dark(#3f7f3f, #98c379); /* the command (bold) */
+  --code-flag: light-dark(#2867f0, #68b3f0); /* -x, --long */
+  --code-str: light-dark(#986801, #e5c07b); /* "quoted" */
+  --code-var: light-dark(#a626a4, #d396e5); /* $variable, name= */
+  --code-op: light-dark(#d72f20, #e9959c); /* \, --, |, &&, = */
 
   /* system fonts: nothing to download */
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* A 1px border shows its pixels on a tight curve: boxes get a wide radius,
-     controls a smaller one, and draw with fills instead of outlines. */
-  --radius: 10px; /* boxes: cards, code, terminals */
-  --radius-sm: 6px; /* controls: buttons, switch blocks, fields */
+  /* Chrome iOS shapes: boxes get a wide radius (like its new tab page
+     modules), controls are capsules, and both draw with fills instead of
+     outlines (a 1px border shows its pixels on a curve). */
+  --radius: 16px; /* boxes: cards, code, terminals */
+  --pill: 999px; /* controls: buttons, pills, switches, icon buttons */
   --page: 68rem;
   --gutter: clamp(1rem, 4vw, 2rem);
+  /* the gutter, widened by the notch / rounded corners in landscape */
+  --gutter-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+  --gutter-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+  /* sticky top bar, the notch's inset included (Header.astro) */
+  --header: calc(3.75rem + env(safe-area-inset-top, 0px));
   --nudge: 2px;
 
-  /* motion: quick to arrive, slow to settle back (see "Motion" in BRAND.md) */
+  /* motion: quick to arrive, slow to settle back */
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --fast: 160ms;
@@ -76,7 +103,9 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  scroll-padding-top: 5rem;
+  /* the page color reaches past the edges when a phone over-scrolls */
+  background: var(--bg);
+  scroll-padding-top: calc(var(--header) + 1rem);
   /* the scrollbar's space is kept on short pages too, so the header doesn't
      jump sideways between long and short pages */
   scrollbar-gutter: stable;
@@ -92,9 +121,10 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 1.0625rem / 1.6 var(--sans);
+  font: 1rem / 1.6 var(--sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  overflow-wrap: break-word;
 }
 
 /* one text font everywhere: buttons don't inherit it by default */
@@ -119,16 +149,16 @@ h3 {
 }
 
 h1 {
-  font-size: clamp(2.25rem, 6vw, 3.5rem);
+  font-size: clamp(2.25rem, 5vw, 3rem);
   letter-spacing: -0.02em;
 }
 
 h2 {
-  font-size: clamp(1.4rem, 3vw, 1.75rem);
+  font-size: clamp(1.375rem, 2.5vw, 1.5rem);
 }
 
 h3 {
-  font-size: 1.1rem;
+  font-size: 1.0625rem;
 }
 
 p {
@@ -153,8 +183,6 @@ a:hover {
 a,
 button,
 .card,
-.nudge,
-.copy,
 .arrow {
   transition-property:
     color, background-color, border-color, text-decoration-color, opacity, transform, box-shadow;
@@ -162,14 +190,14 @@ button,
   transition-timing-function: var(--ease);
 }
 
-:is(a, button, .card, .nudge, .copy):is(:hover, :focus-visible),
-:is(a, .nudge):hover .arrow {
+:is(a, button, .card):is(:hover, :focus-visible),
+a:hover .arrow {
   transition-duration: var(--fast);
 }
 
 /* While the theme switches, colors change at once (or inside the view
    transition), not each element at its own pace. */
-:root[data-switching] *:not(.theme-toggle svg) {
+:root[data-switching] * {
   /* biome-ignore lint/complexity/noImportantStyles: must win over every component transition */
   transition: none !important;
 }
@@ -182,15 +210,62 @@ button,
   animation-timing-function: var(--ease-in-out);
 }
 
+/* The theme icon is not cross-faded: only the new one shows, and the view
+   transition turns it half a turn, from its old angle to the one it now rests
+   at (the snapshot already shows that one). On the transition's clock, not a
+   CSS transition of its own: that one was copied into the snapshot frame by
+   frame and handed over mid-turn, so it stuttered (ThemeToggle.astro). */
+::view-transition-old(theme-icon) {
+  display: none;
+}
+
+::view-transition-group(theme-icon) {
+  animation: none;
+}
+
+::view-transition-new(theme-icon) {
+  animation: theme-icon-turn 450ms var(--ease-in-out);
+}
+
+/* back to light, it turns back */
+:root[data-theme="light"]::view-transition-new(theme-icon) {
+  animation-name: theme-icon-turn-back;
+}
+
+@keyframes theme-icon-turn {
+  from {
+    transform: rotate(-180deg);
+  }
+}
+
+@keyframes theme-icon-turn-back {
+  from {
+    transform: rotate(180deg);
+  }
+}
+
 :focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
+}
+
+/* text links get a slightly rounded ring; capsules keep their own shape
+   (the outline follows their radius) */
+a:not(.button, .icon-button):focus-visible {
   border-radius: 2px;
 }
 
 code,
 pre {
   font-family: var(--mono);
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+  /* a sideways swipe through a long line stays inside it */
+  overscroll-behavior-x: contain;
+}
+
+/* code blocks set their own size (pre, below) */
+code {
   font-size: 0.88em;
 }
 
@@ -198,14 +273,9 @@ pre code {
   font-size: inherit;
 }
 
-pre,
-code {
-  scrollbar-width: thin;
-  scrollbar-color: var(--line-strong) transparent;
-}
-
 :not(pre) > code {
-  background: var(--fill);
+  background: var(--surface);
+  box-shadow: var(--raised);
   border-radius: 4px;
   padding: 0.05em 0.35em;
 }
@@ -216,8 +286,8 @@ svg {
 }
 
 ::selection {
-  background: var(--text);
-  color: var(--bg);
+  background: var(--inverse);
+  color: var(--on-inverse);
 }
 
 /* Markdown (<Markdown>): a paragraph box around paragraphs and lists */
@@ -253,11 +323,11 @@ svg {
   width: 100%;
   max-width: var(--page);
   margin-inline: auto;
-  padding-inline: var(--gutter);
+  padding-inline: var(--gutter-left) var(--gutter-right);
 }
 
 .section {
-  padding-block: clamp(2.5rem, 6vw, 4.5rem);
+  padding-block: clamp(2.25rem, 6vw, 4.5rem);
   border-top: 1px solid var(--line);
 }
 
@@ -291,7 +361,7 @@ svg {
 }
 
 .lead {
-  font-size: clamp(1.1rem, 2vw, 1.25rem);
+  font-size: clamp(1.0625rem, 2vw, 1.125rem);
   max-width: 38rem;
 }
 
@@ -301,13 +371,13 @@ svg {
   top: -3rem;
   z-index: 100;
   padding: 0.5rem 0.75rem;
-  background: var(--text);
-  color: var(--bg);
-  border-radius: var(--radius);
+  background: var(--inverse);
+  color: var(--on-inverse);
+  border-radius: var(--pill);
 }
 
 .skip:focus {
-  top: 0.5rem;
+  top: calc(0.5rem + env(safe-area-inset-top, 0px));
 }
 
 /* ------------------------------------------------------------ components */
@@ -338,8 +408,7 @@ svg {
   }
 
   /* text links only: arrows in buttons stay put */
-  a:not(.button):hover > .arrow,
-  .nudge:hover .arrow {
+  a:not(.button):hover > .arrow {
     transform: translateX(calc(var(--nudge) * 2));
   }
 
@@ -368,18 +437,48 @@ svg {
   display: inline-block;
 }
 
+/* Arrows that point somewhere bounce (Arrow.astro), opennudge.com's
+   bouncing arrow around where it rests (the text's middle): up a little
+   over it, down a little under it, a smaller hop up, then still. Units are
+   the arrow's 24 (at 18px, 4 units is 3px). The path moves inside the SVG,
+   not the box: it is redrawn as a vector every frame, so it moves smoothly
+   and stays sharp at any zoom; the cost is repainting the arrow's few
+   pixels per frame. Reduced motion stops it (below), at rest. */
+.bounce path {
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+
+  40% {
+    transform: translateY(-4px);
+  }
+
+  55% {
+    transform: translateY(2px);
+  }
+
+  70% {
+    transform: translateY(-1px);
+  }
+}
+
 .card {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  padding: 1.15rem 1.25rem;
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--raised);
 }
 
-/* Filled gray pills: a faint fill of the text color, so they work on any
-   surface and in dark mode alike. */
+/* Pills raised like the boxes (the same surface, ring and shadow), on the
+   page and inside boxes alike. */
 .tags {
   display: flex;
   flex-wrap: wrap;
@@ -392,44 +491,99 @@ svg {
 .tags li {
   font-size: 0.8rem;
   line-height: 1.4;
-  padding: 0.15rem 0.55rem;
-  border-radius: 4px;
-  background: var(--fill);
+  padding: 0.15rem 0.65rem;
+  border-radius: var(--pill);
+  background: var(--surface);
+  box-shadow: var(--raised);
   color: var(--text);
 }
 
-/* Secondary buttons are a faint fill, primary ones a solid --text block.
-   No outlines: a dark 1px curve shows its pixels. (The transparent border
-   keeps both the same size.) */
+/* Capsules: secondary buttons are raised like the boxes (the same surface,
+   ring and shadow), primary ones the other mode's box (--inverse). No
+   outlines: a dark
+   1px curve shows its pixels. (The transparent border keeps both the same
+   size.) */
 .button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.4rem;
-  padding: 0.55rem 0.95rem;
+  padding: 0.6rem 1.15rem;
   border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  background: var(--fill);
+  border-radius: var(--pill);
+  background: var(--surface);
+  box-shadow: var(--raised);
   font-weight: 700;
   text-decoration: none;
   line-height: 1.2;
 }
 
 .button.primary {
-  background: var(--text);
-  color: var(--bg);
+  background: var(--inverse);
+  color: var(--on-inverse);
+  box-shadow: none;
 }
 
 /* Buttons stay put on hover (moving the box under the cursor makes it
-   flicker at the edge); only the fill changes. */
-.button:hover {
-  text-decoration: none;
-  background: var(--fill-strong);
+   flicker at the edge); only the fill changes. On touch screens the fill
+   shows while the finger is down (:active), so it doesn't stick after a tap. */
+@media (hover: hover) {
+  .button:hover {
+    background: var(--surface-hover);
+  }
+
+  .button.primary:hover {
+    background: var(--inverse-hover);
+    border-color: var(--inverse-hover);
+  }
 }
 
-.button.primary:hover {
-  --hover: color-mix(in srgb, var(--text) 82%, var(--bg));
-  background: var(--hover);
-  border-color: var(--hover);
+.button:active {
+  background: var(--surface-hover);
+}
+
+.button.primary:active {
+  background: var(--inverse-hover);
+  border-color: var(--inverse-hover);
+}
+
+/* Round icon buttons (links or buttons), like Chrome's toolbar: only the
+   icon, until hovered or pressed. */
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--pill);
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .icon-button:hover {
+    background: var(--surface);
+    box-shadow: var(--raised);
+  }
+}
+
+.icon-button:active {
+  background: var(--surface);
+  box-shadow: var(--raised);
+}
+
+/* thumbs need 44px targets */
+@media (pointer: coarse) {
+  .button {
+    min-height: 2.75rem;
+  }
+
+  .icon-button {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
 }
 
 /* ------------------------------------------------------------------ code */
@@ -441,13 +595,7 @@ pre {
   padding: 1rem 1.15rem;
   overflow-x: auto;
   line-height: 1.55;
-  font-size: 0.92rem;
-}
-
-/* Shiki: keep our gray surface instead of the theme's background. */
-pre.astro-code {
-  /* biome-ignore lint/complexity/noImportantStyles: Shiki sets the theme background inline */
-  background-color: var(--surface) !important;
+  font-size: 0.875rem;
 }
 
 /* Terminal (<Terminal>): a gray row with a ">_" tile and a "$" prompt. */
@@ -465,7 +613,8 @@ pre.astro-code {
   display: grid;
   place-items: center;
   width: 2rem;
-  background: var(--fill);
+  border-right: 1px solid var(--divider);
+  background: var(--surface);
   color: var(--muted);
   font: 700 0.78rem / 1 var(--mono);
   user-select: none;
@@ -478,34 +627,135 @@ pre.astro-code {
   align-self: center;
   padding: 0.45rem 0.6rem;
   white-space: nowrap;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  color: var(--code-fg);
   background: none;
-  border: 0;
+  box-shadow: none;
   border-radius: 0;
 }
 
-.terminal .prompt {
+.terminal .prompt,
+.shell .prompt {
   color: var(--muted);
   font-weight: 700;
   user-select: none;
 }
 
-/* uv / pip (ProjectCard): both commands share one spot and <html
-   data-installer> picks one. The other fades out quickly while the chosen
-   one fades in; their copy buttons look the same, so they simply swap. */
-.terminal .commands {
+/* a long command (<Terminal wrap>) wraps beside the prompt, between words */
+.terminal.wraps > code {
+  display: flex;
+  white-space: normal;
+}
+
+.terminal.wraps .prompt {
+  flex: none;
+  white-space: pre;
+}
+
+.terminal.wraps .commands {
+  flex: 1;
+  min-width: 0;
+}
+
+/* only between words: never after a flag's dash (--from) */
+.terminal.wraps .commands [class^="sh-"] {
+  white-space: nowrap;
+}
+
+/* the tile stays by the first line */
+.terminal.wraps .tile {
+  place-items: start center;
+  padding-top: 0.7rem;
+}
+
+/* Frames (a <Terminal> of several lines): a box with a ">_ shell" strip on
+   top and the copy button, split off by a --divider; the code below is
+   flush with the box. */
+.frame {
+  min-width: 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--raised);
+  overflow: hidden;
+}
+
+.frame-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 2rem;
+  padding-left: 0.9rem;
+  border-bottom: 1px solid var(--divider);
+  color: var(--muted);
+  font: 0.75rem / 1.3 var(--mono);
+  user-select: none;
+}
+
+.frame-head .tile-glyph {
+  font-weight: 700;
+}
+
+.frame > pre {
+  margin: 0;
+  padding: 0.75rem 0.9rem 0.85rem;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 0.8rem;
+}
+
+.shell {
+  color: var(--code-fg);
+}
+
+/* shell colors (src/lib/shell.ts), after zsh-syntax-highlighting: the
+   command and its flags stand out, the rest stays quiet */
+.sh-cmd {
+  color: var(--code-cmd);
+  font-weight: 700;
+}
+
+.sh-flag {
+  color: var(--code-flag);
+}
+
+.sh-str {
+  color: var(--code-str);
+}
+
+.sh-var {
+  color: var(--code-var);
+}
+
+.sh-op {
+  color: var(--code-op);
+}
+
+/* Switched options (<Switch>): commands share one spot and <html
+   data-{switch}> picks one; without it, the first. The other fades out
+   quickly while the chosen one fades in; their copy buttons look the same,
+   so they simply swap. Each list names the options that are not chosen. */
+.commands {
   display: inline-grid;
 }
 
-.terminal .commands > * {
+.commands > * {
   grid-area: 1 / 1;
   transition:
     opacity var(--slow) var(--ease),
     visibility 0s;
 }
 
-:root:not([data-installer="pip"]) .commands > .pm-pip,
-:root[data-installer="pip"] .commands > .pm-uv {
+.commands
+  > :is(
+    :root[data-installer="pip"] .installer-uv,
+    :root:not([data-installer="pip"]) .installer-pip,
+    :root[data-agent]:not([data-agent="claude"]) .agent-claude,
+    :root:not([data-agent="codex"]) .agent-codex,
+    :root:not([data-agent="opencode"]) .agent-opencode,
+    :root:not([data-agent="pi"]) .agent-pi,
+    :root:not([data-agent="antigravity"]) .agent-antigravity
+  ) {
   opacity: 0;
   visibility: hidden;
   transition:
@@ -513,8 +763,15 @@ pre.astro-code {
     visibility 0s var(--fast);
 }
 
-:root:not([data-installer="pip"]) .copy.pm-pip,
-:root[data-installer="pip"] .copy.pm-uv {
+.copy:is(
+  :root[data-installer="pip"] .installer-uv,
+  :root:not([data-installer="pip"]) .installer-pip,
+  :root[data-agent]:not([data-agent="claude"]) .agent-claude,
+  :root:not([data-agent="codex"]) .agent-codex,
+  :root:not([data-agent="opencode"]) .agent-opencode,
+  :root:not([data-agent="pi"]) .agent-pi,
+  :root:not([data-agent="antigravity"]) .agent-antigravity
+) {
   display: none;
 }
 
@@ -528,15 +785,22 @@ pre.astro-code {
   margin-inline: 0.3rem;
   padding: 0.3rem;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--pill);
   background: none;
   color: var(--muted);
   cursor: pointer;
 }
 
-.copy:hover {
+@media (hover: hover) {
+  .copy:hover {
+    color: var(--text);
+    background: var(--surface-hover);
+  }
+}
+
+.copy:active {
   color: var(--text);
-  background: var(--fill);
+  background: var(--surface-hover);
 }
 
 /* fingers need more room than the 14px icon */
@@ -567,16 +831,19 @@ pre.astro-code {
 
 /* the note ("copied" / "copy failed", data-note): an inverted label that
    opens to the right of the icon, inside the button. The command beside it
-   gives up spare room at its end instead of being covered. */
+   gives up spare room at its end instead of being covered. Its own font:
+   the same note in a row and in a frame's (mono) strip. */
 .copy::after {
   content: attr(data-note);
+  font-family: var(--sans);
+  font-weight: 400;
   max-width: 0;
   overflow: hidden;
   margin-left: 0;
   padding: 0.1rem 0;
-  border-radius: 4px;
-  background: var(--text);
-  color: var(--bg);
+  border-radius: var(--pill);
+  background: var(--inverse);
+  color: var(--on-inverse);
   font-size: 0.75rem;
   line-height: 1.4;
   white-space: nowrap;
@@ -589,9 +856,129 @@ pre.astro-code {
 .copy[data-state]::after {
   max-width: 7rem;
   margin-left: 0.35rem;
-  padding-inline: 0.45rem;
+  padding-inline: 0.55rem;
   opacity: 1;
   transition-duration: var(--fast);
+}
+
+/* ---------------------------------------------------------------- phones */
+
+/* A section opened by a tab fades in (phones: src/scripts/tabs.ts). */
+[data-panel][data-enter] {
+  animation: enter var(--slow) var(--ease);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Content for one kind of screen only: phones are max-width 40rem (the
+   breakpoint of the section tabs), everything wider is "desktop". */
+@media (max-width: 40rem) {
+  .only-desktop {
+    /* biome-ignore lint/complexity/noImportantStyles: must win over the display of any component */
+    display: none !important;
+  }
+}
+
+@media (width > 40rem) {
+  .only-phone {
+    /* biome-ignore lint/complexity/noImportantStyles: must win over the display of any component */
+    display: none !important;
+  }
+}
+
+/* Phones get GitHub's mobile sizes: prose 15px, interface text 14px, code
+   13px (Primer's code block size), smaller headings and 36px capsules. The
+   spacing stays (the gutter grows), so the smaller text has room. */
+@media (max-width: 40rem) {
+  :root {
+    --gutter: 1.25rem;
+    /* sticky section tabs (Tabs.astro): padding, track and a touch-sized tab */
+    --tabs: 4rem;
+  }
+
+  /* anchors land under the header and the section tabs */
+  html {
+    scroll-padding-top: calc(var(--header) + var(--tabs) + 0.75rem);
+  }
+
+  body {
+    font-size: 0.9375rem;
+    line-height: 1.55;
+  }
+
+  /* "developer-first tools" on one line down to 360px screens */
+  h1 {
+    font-size: clamp(1.5rem, 7.2vw, 1.75rem);
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  h3 {
+    font-size: 1rem;
+  }
+
+  .lead {
+    font-size: 1rem;
+  }
+
+  .eyebrow {
+    font-size: 0.8125rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-head {
+    margin-bottom: 1.25rem;
+  }
+
+  .section-head :is(p, .prose) {
+    font-size: 0.875rem;
+  }
+
+  .tags li {
+    font-size: 0.75rem;
+    padding-inline: 0.6rem;
+  }
+
+  .button {
+    min-height: 2.25rem;
+    padding: 0.4rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  pre,
+  .terminal > code {
+    font-size: 0.8125rem;
+  }
+
+  /* room for 39 columns (the phone version of the verify command) */
+  pre {
+    padding: 0.875rem;
+  }
+
+  .terminal .tile {
+    width: 1.75rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Thumbs still get 44px: an invisible margin around the 36px capsule, as
+   GitHub does (Primer's control-minTarget-coarse). */
+@media (max-width: 40rem) and (pointer: coarse) {
+  .button {
+    position: relative;
+  }
+
+  .button::before {
+    content: "";
+    position: absolute;
+    inset: -0.25rem 0;
+  }
 }
 
 /* ----------------------------------------------------------- reduced motion */
@@ -607,8 +994,7 @@ pre.astro-code {
   }
 
   .nudge:hover,
-  a:not(.button):hover > .arrow,
-  .nudge:hover .arrow {
+  a:not(.button):hover > .arrow {
     transform: none;
   }
 

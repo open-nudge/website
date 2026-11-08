@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
 // SPDX-License-Identifier: Apache-2.0
 
+import { agentReady } from "../lib/projects";
 import { site } from "../site.config";
 import Logo from "./Logo.astro";
 
@@ -13,8 +14,8 @@ const year = new Date().getFullYear();
     <div class="about">
       <Logo variant="mark" height={34} decorative />
       <p>
-        <strong>{site.name}</strong><br>
-        <span class="muted">{site.hero.motto}</span>
+        <strong>{site.name}</strong>
+        <span class="muted motto">{site.hero.motto}</span>
       </p>
     </div>
 
@@ -30,7 +31,11 @@ const year = new Date().getFullYear();
       <h2>{site.footer.agents}</h2>
       <ul>
         <li><a href={site.links.llms}>{site.footer.llms}</a></li>
-        <li><a href={site.links.agents}>{site.footer.mcp}</a></li>
+        {site.agents && agentReady.length > 0 && (
+          <li>
+            <a href={site.links.agents}>{site.footer.mcp}</a>
+          </li>
+        )}
       </ul>
     </div>
 
@@ -43,16 +48,19 @@ const year = new Date().getFullYear();
     </div>
   </div>
 
-  <div class="wrap legal">
-    <span>© {year} {site.name}</span>
-    <span>{site.footer.license}</span>
+  <div class="wrap">
+    <div class="legal">
+      <span>© {year} {site.name}</span>
+      <span>{site.footer.license}</span>
+    </div>
   </div>
 </footer>
 
 <style>
 .site-footer {
   border-top: 1px solid var(--line);
-  padding-block: 3rem 2rem;
+  /* the bottom stays clear of the iPhone home indicator */
+  padding-block: 3rem calc(2rem + env(safe-area-inset-bottom, 0px));
   font-size: 0.92rem;
 }
 
@@ -73,6 +81,11 @@ const year = new Date().getFullYear();
   line-height: 1.45;
 }
 
+/* under the name; on phones beside it: "opennudge · small changes, ..." */
+.motto {
+  display: block;
+}
+
 h2 {
   font-size: 0.8rem;
   font-weight: 400;
@@ -89,9 +102,21 @@ ul {
   gap: 0.35rem;
 }
 
+/* long links (the email address) break instead of overflowing */
+a {
+  overflow-wrap: anywhere;
+}
+
+/* phones: each link a comfortable touch target */
 @media (pointer: coarse) {
   ul {
-    gap: 0.75rem;
+    gap: 0;
+  }
+
+  li a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.5rem;
   }
 }
 
@@ -117,6 +142,42 @@ ul {
   .about,
   .contact {
     grid-column: 1 / -1;
+  }
+}
+
+/* small phones: one column, one left edge */
+@media (max-width: 30rem) {
+  .cols {
+    grid-template-columns: 1fr;
+  }
+
+  .legal {
+    flex-direction: column;
+  }
+}
+
+/* phones: GitHub's mobile sizes (global.css), name and motto on one line */
+@media (max-width: 40rem) {
+  .site-footer {
+    font-size: 0.875rem;
+  }
+
+  .legal {
+    font-size: 0.8125rem;
+  }
+
+  .about {
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .motto {
+    display: inline;
+  }
+
+  .motto::before {
+    content: "·" / "";
+    margin-inline: 0.35em;
   }
 }
 </style>

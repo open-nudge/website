@@ -2,60 +2,85 @@
 // SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
 // SPDX-License-Identifier: Apache-2.0
 
-import { copyIcons, iconAttributes } from "../lib/code";
-// A shell command: ">_" tile, "$" prompt (never copied) and a copy button
-// (shown by src/scripts/copy.ts when the clipboard is available).
-// Given { uv, pip }, both commands share the row and <html data-installer>
-// picks one (ProjectCard); the text cross-fades in place.
-// Styles: .terminal in global.css.
+// A shell command, syntax-colored (src/lib/shell.ts): a "$" prompt (never
+// copied) and a copy button (shown by src/scripts/copy.ts when the clipboard
+// is available). One line is a row with a ">_" tile; several lines (a
+// command continued with "\", or a few commands) are a box with a ">_ shell"
+// strip on top and the copy button in it.
+// Given a record of commands (e.g. { uv, pip }) and the name of a switch
+// (<Switch>, e.g. "installer"), all of them share the spot and <html
+// data-{switch}> picks one; the text cross-fades in place.
+// Styles: .terminal and .frame in global.css.
+import { shellHtml } from "../lib/shell";
 import { site } from "../site.config";
+import CopyButton from "./CopyButton.astro";
 
 interface Props {
-  command: string | { uv: string; pip: string };
+  command: string | Record<string, string>;
+  /** The switch that picks one of several commands (they need one). */
+  switch?: string;
   /** Optional caption shown above the command. */
   label?: string;
+  /** Wrap a long command onto more lines (beside the prompt) instead of
+   * scrolling it sideways. */
+  wrap?: boolean;
 }
 
-const { command, label } = Astro.props;
-// [installer class, command]; a single command has no installer
+const { command, switch: name, label, wrap = false } = Astro.props;
+// [option class, command]; a single command has no option
 const commands =
   typeof command === "string"
     ? [["", command]]
-    : Object.entries(command).map(([installer, text]) => [`pm-${installer}`, text]);
+    : Object.entries(command).map(([option, text]) => [`${name}-${option}`, text]);
+const multiline = commands.some(([, text]) => text?.includes("\n"));
+// HTML built here, not in the markup: whitespace inside <pre> and <code> is
+// shown, and the formatter would add some. Several lines carry their own
+// prompts; a row has one in front of all its options.
+const options = commands
+  .map(
+    ([option, text]) =>
+      `<span${option ? ` class="${option}"` : ""}>${shellHtml(text ?? "", multiline)}</span>`,
+  )
+  .join("");
+const html = multiline
+  ? `<span class="commands">${options}</span>`
+  : `<span class="prompt" aria-hidden="true">$ </span><span class="commands">${options}</span>`;
 ---
 
-<div class="term">
-  {label && <span class="label">{label}</span>}
-  <div class="terminal">
-    <span class="tile" aria-hidden="true">&gt;_</span>
-    <code
-      ><span class="prompt" aria-hidden="true">$ </span
-      ><span class="commands"
-        >{commands.map(([pm, text]) => <span class={pm || undefined}>{text}</span>)}</span
-      ></code
-    >
-    {commands.map(([pm, text]) => (
-      <button
-        type="button"
-        class:list={["copy", pm]}
-        data-copy={text}
-        data-copied={site.ui.copied}
-        data-copy-failed={site.ui.copyFailed}
-        aria-label={`${site.ui.copyCommand} ${text}`}
-        title={site.ui.copy}
-        hidden
-      >
-        {copyIcons.map((icon) => (
-          <svg {...iconAttributes()} class={icon.class}>
-            {icon.paths.map((d) => (
-              <path d={d} />
-            ))}
-          </svg>
-        ))}
-      </button>
-    ))}
+{multiline ? (
+  <div class="term">
+    {label && <span class="label">{label}</span>}
+    <div class="frame">
+      <div class="frame-head">
+        <span class="frame-label">
+          <span class="tile-glyph" aria-hidden="true">
+            &gt;_
+          </span>{" "}
+          {site.ui.shell}
+        </span>
+        <span class="copies">
+          {commands.map(([option, text]) => (
+            <CopyButton text={text ?? ""} label={site.ui.copyCommand} class={option || undefined} />
+          ))}
+        </span>
+      </div>
+      <pre class="shell" set:html={`<code>${html}</code>`} />
+    </div>
   </div>
-</div>
+) : (
+  <div class="term">
+    {label && <span class="label">{label}</span>}
+    <div class:list={["terminal", { wraps: wrap }]}>
+      <span class="tile" aria-hidden="true">
+        &gt;_
+      </span>
+      <code set:html={html} />
+      {commands.map(([option, text]) => (
+        <CopyButton text={text ?? ""} label={site.ui.copyCommand} class={option || undefined} />
+      ))}
+    </div>
+  </div>
+)}
 
 <style>
 .term {
@@ -67,5 +92,11 @@ const commands =
 .label {
   font-size: 0.78rem;
   color: var(--muted);
+}
+
+@media (max-width: 40rem) {
+  .label {
+    font-size: 0.8125rem;
+  }
 }
 </style>

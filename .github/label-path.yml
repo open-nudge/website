@@ -50,8 +50,8 @@ legal:
           - "LICENSES/**"
           - "REUSE.toml"
           - "DCO.md"
-          - "BRAND.md"
           - ".github/CODEOWNERS"
+          - "CITATION.cff"
 
 security:
   - changed-files:
@@ -59,6 +59,9 @@ security:
           - ".github/workflows/security-*.yml"
           - ".github/workflows/harden.yml"
           - ".github/rulesets/**"
+          - ".github/tools/harden.sh"
+          - ".github/tools/harden/**"
+          - "SECURITY.md"
 
 src:
   - changed-files:

@@ -6,7 +6,7 @@
 version = 1
 
 # opennudge logo, mark, icons and social image: not Apache-2.0, all rights
-# reserved (LICENSES/LicenseRef-opennudge-brand.txt, usage in BRAND.md)
+# reserved (LICENSES/LicenseRef-opennudge-brand.txt)
 [[annotations]]
 path = [
   "public/brand/**",
@@ -24,3 +24,12 @@ SPDX-License-Identifier = "LicenseRef-opennudge-brand"
 path = "public/robots.txt"
 SPDX-FileCopyrightText = "© 2026 open-nudge <https://github.com/open-nudge>"
 SPDX-License-Identifier = "Apache-2.0"
+
+# Agent logos in the "for agents" switch, from LobeHub icons
+# (@lobehub/icons-static-svg 1.102.0, MIT). The marks are trademarks of
+# their owners (Anthropic, OpenAI, opencode, pi, Google), shown only to
+# name the tools.
+[[annotations]]
+path = "src/assets/agents/**"
+SPDX-FileCopyrightText = "© 2023 LobeHub <https://github.com/lobehub/lobe-icons>"
+SPDX-License-Identifier = "MIT"

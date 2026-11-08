@@ -16,7 +16,4 @@ const projects = load(
   "src/content/projects.yaml",
   projectsSchema(site.groups),
 );
-validateReferences(
-  Object.entries(projects).map(([id, data]) => ({ id, ...data })),
-  site.nudges,
-);
+validateReferences(Object.values(projects));

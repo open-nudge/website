@@ -3,6 +3,7 @@
 
 import { z } from "astro/zod";
 import { validateMarkdown } from "./markdown.ts";
+import { projectName } from "./project-schema.ts";
 
 const destinationPattern = /^(https?:\/\/|mailto:|\/(?!\/)|#)/;
 const destination = z
@@ -29,10 +30,14 @@ const siteSchema = z.strictObject({
     skip: z.string(),
     copy: z.string(),
     copyCommand: z.string(),
+    shell: z.string(),
     copied: z.string(),
     copyFailed: z.string(),
     uv: z.string(),
     pip: z.string(),
+    sections: z.string(),
+    previous: z.string(),
+    next: z.string(),
   }),
   hero: z.strictObject({
     title: z.string(),
@@ -40,51 +45,82 @@ const siteSchema = z.strictObject({
     motto: z.string(),
     lead: z.string(),
     points: z.array(z.string()),
-    spec: z.array(
-      z.strictObject({
-        key: z.string(),
-        value: z.string(),
-        note: z.string(),
-      }),
-    ),
+    // phones fall back to `lead` and `points`
+    phone: z
+      .strictObject({
+        lead: z.string().optional(),
+        points: z.array(z.string()).optional(),
+      })
+      .optional(),
+    spec: z
+      .array(
+        z.strictObject({
+          key: z.string(),
+          value: z.string(),
+          note: z.string(),
+        }),
+      )
+      .default([]),
   }),
-  template: z.strictObject({
-    eyebrow: z.string(),
-    action: z.string(),
-    url: z.url(),
-    text: z.string(),
-    features: z.array(
-      z.strictObject({
-        title: z.string(),
-        text: z.string(),
-      }),
-    ),
-    verify: z.strictObject({
+  // Page sections: each is optional, and leaving one out drops the section,
+  // its phone tab and the links to it.
+
+  template: z
+    .strictObject({
+      tab: z.string(),
+      eyebrow: z.string().optional(),
+      action: z.string(),
+      url: z.url(),
+      text: z.string().optional(),
+      // phones fall back to `text`
+      phone: z.strictObject({ text: z.string().optional() }).optional(),
+      verify: z
+        .strictObject({
+          title: z.string(),
+          text: z.string(),
+          command: z.string(),
+          // phones fall back to `command`
+          phoneCommand: z.string().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+  agents: z
+    .strictObject({
+      tab: z.string(),
       title: z.string(),
       text: z.string(),
-      command: z.string(),
-    }),
-  }),
-  agents: z.strictObject({
-    eyebrow: z.string(),
-    title: z.string(),
-    text: z.string(),
-    note: z.string(),
-    commandLabel: z.string(),
-    configLabel: z.string(),
-  }),
-  projects: z.strictObject({
-    label: z.string(),
-    ships: z.string(),
-    benefits: z.array(z.string()),
-  }),
-  nudgeSection: z.strictObject({
-    title: z.string(),
-    text: z.string(),
-  }),
+      // phones fall back to `text`
+      phone: z.strictObject({ text: z.string().optional() }).optional(),
+      note: z.string().optional(),
+      commandLabel: z.string(),
+      addLabel: z.string(),
+      switchLabel: z.string(),
+      clients: z.strictObject({
+        claude: z.string(),
+        codex: z.string(),
+        opencode: z.string(),
+        pi: z.string(),
+        antigravity: z.string(),
+      }),
+    })
+    .optional(),
+  projects: z
+    .strictObject({
+      ships: z.string(),
+      benefits: z.array(z.string()),
+    })
+    .optional(),
+  nudgeSection: z
+    .strictObject({
+      tab: z.string(),
+      title: z.string(),
+      text: z.string(),
+    })
+    .optional(),
   groups: z.record(
     z.string().regex(/^[a-z][a-z0-9-]*$/),
-    z.strictObject({ title: z.string(), text: z.string() }),
+    z.strictObject({ title: z.string(), tab: z.string(), text: z.string() }),
   ),
   links: z.strictObject({
     github: destination,
@@ -94,14 +130,17 @@ const siteSchema = z.strictObject({
     llms: destination,
     agents: destination,
   }),
-  nudges: z.array(
-    z.strictObject({
-      title: z.string(),
-      text: z.string(),
-      projects: z.array(z.string()),
-      link: z.strictObject({ href: destination, label: z.string() }).optional(),
-    }),
-  ),
+  nudges: z
+    .array(
+      z.strictObject({
+        title: z.string(),
+        text: z.string(),
+        // shown projects link to their card, others to their GitHub repository
+        projects: z.array(z.string().regex(projectName)),
+        link: z.strictObject({ href: destination, label: z.string() }).optional(),
+      }),
+    )
+    .default([]),
   footer: z.strictObject({
     contact: z.string(),
     github: z.string(),
@@ -133,18 +172,23 @@ const siteSchema = z.strictObject({
     infoText: z.string(),
     contact: z.string(),
   }),
-  identity: z.strictObject({
-    eyebrow: z.string(),
-    title: z.string(),
-    values: z.array(
-      z.strictObject({
-        name: z.string(),
-        text: z.string(),
-      }),
-    ),
-    mission: z.string(),
-    vision: z.string(),
-  }),
+  identity: z
+    .strictObject({
+      tab: z.string(),
+      eyebrow: z.string().optional(),
+      title: z.string(),
+      values: z
+        .array(
+          z.strictObject({
+            name: z.string(),
+            text: z.string(),
+          }),
+        )
+        .default([]),
+      mission: z.string().optional(),
+      vision: z.string().optional(),
+    })
+    .optional(),
   language: z.string(),
   projectDefaults: z.strictObject({
     docsBase: z.url(),

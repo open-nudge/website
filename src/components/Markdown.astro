@@ -1,11 +1,16 @@
 ---
 // SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
 // SPDX-License-Identifier: Apache-2.0
+
+// Content Markdown (already validated by the schemas) rendered to HTML.
 import { renderMarkdown } from "../lib/markdown";
 
 interface Props {
+  /** The Markdown text. */
   text: string;
+  /** Extra class on the `.prose` wrapper (not used when inline). */
   class?: string;
+  /** Render without a wrapper or `<p>`, for use inside a heading or label. */
   inline?: boolean;
 }
 const { text, class: className, inline = false } = Astro.props;

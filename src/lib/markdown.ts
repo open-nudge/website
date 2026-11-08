@@ -4,10 +4,22 @@
 import { Marked, type Token, type Tokens } from "marked";
 
 // Build-time only: content is compiled to ordinary HTML, never sent as a parser.
+/** Link destinations that would run code or embed content, never allowed. */
 const unsafeUrl = /^(?:javascript|data|vbscript):/i;
 const whitespace = /\s+/g;
+/** CommonMark only (no GitHub extensions); a single newline is not a line break. */
 const markdown = new Marked({ gfm: false, breaks: false });
 
+/**
+ * Check a content field's Markdown; called by the schemas
+ * (src/lib/project-schema.ts, src/lib/site-schema.ts).
+ *
+ * @param source - The Markdown text.
+ * @param field - Name of the field, used in error messages.
+ * @param inline - Allow only one line of text (emphasis and code, no links,
+ *   paragraphs or lists), for headings and labels.
+ * @throws Error on raw HTML, an unsafe link destination, or (inline) blocks or links.
+ */
 function validateMarkdown(source: string, field: string, inline = false) {
   const tokens = markdown.lexer(source);
   markdown.walkTokens(tokens, (token) => {
@@ -26,6 +38,13 @@ function validateMarkdown(source: string, field: string, inline = false) {
   }
 }
 
+/**
+ * Render Markdown to HTML at build time (Markdown.astro).
+ *
+ * @param source - The Markdown text, already checked by {@link validateMarkdown}.
+ * @param inline - Render without the surrounding `<p>`, for use inside a heading.
+ * @returns The HTML.
+ */
 function renderMarkdown(source: string, inline = false): string {
   return inline ? markdown.parseInline(source, { async: false }) : markdown.parse(source, { async: false });
 }
@@ -44,6 +63,14 @@ function readToken(token: Token): string {
   }
   return "text" in token ? String(token.text) : "";
 }
+
+/**
+ * The text of Markdown without any markup, on one line: for `<meta>`
+ * descriptions and /llms.txt.
+ *
+ * @param source - The Markdown text.
+ * @returns Plain text, whitespace collapsed to single spaces.
+ */
 function plainText(source: string): string {
   return markdown.lexer(source).map(readToken).join("").replace(whitespace, " ").trim();
 }

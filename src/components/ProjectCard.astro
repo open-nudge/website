@@ -3,12 +3,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // A project card. The install command is a bar along the bottom edge, with
-// uv / pip tabs above it; one click switches the commands on every card.
+// a uv / pip switch above it; one click switches the commands on every card.
 // Each link carries a small icon of where it goes: GitHub, PyPI, docs.
 import { githubMark, iconAttributes } from "../lib/code";
 import type { Project } from "../lib/projects";
 import { site } from "../site.config";
 import Markdown from "./Markdown.astro";
+import Switch from "./Switch.astro";
 import Terminal from "./Terminal.astro";
 
 interface Props {
@@ -60,62 +61,25 @@ const icons = {
         </a>
       </p>
       {project.commands && (
-        // biome-ignore lint/a11y/useSemanticElements: a fieldset brings form styling (border, padding, min-width) to a two-button switch, role=group is its ARIA equivalent
-        <div class="installer" role="group" aria-label={site.ui.installWith} hidden>
-          <button type="button" data-installer="uv" aria-pressed="true">
-            {site.ui.uv}
-          </button>
-          <button type="button" data-installer="pip" aria-pressed="false">
-            {site.ui.pip}
-          </button>
-        </div>
+        <Switch
+          name="installer"
+          label={site.ui.installWith}
+          options={[
+            { value: "uv", label: site.ui.uv },
+            { value: "pip", label: site.ui.pip },
+          ]}
+        />
       )}
     </div>
   </div>
   {project.commands && (
     <div class="install">
-      <Terminal command={project.commands} />
+      <Terminal command={project.commands} switch="installer" />
     </div>
   )}
 </article>
 
-<script>
-// The choice is stored and restored before first paint by Base.astro;
-// global.css shows the matching command. Without JavaScript the tabs stay
-// hidden and uv is shown.
-const root = document.documentElement;
-const buttons = document.querySelectorAll<HTMLButtonElement>("button[data-installer]");
-const sync = () => {
-  const current = root.dataset.installer ?? "uv";
-  for (const button of buttons) {
-    button.setAttribute("aria-pressed", String(button.dataset.installer === current));
-  }
-};
-
-for (const group of document.querySelectorAll<HTMLElement>(".installer")) {
-  group.hidden = false;
-}
-for (const button of buttons) {
-  button.addEventListener("click", () => {
-    const installer = button.dataset.installer ?? "uv";
-    root.dataset.installer = installer;
-    try {
-      localStorage.setItem("installer", installer);
-    } catch {
-      // storage unavailable (private mode): the choice lasts for this page only
-    }
-    sync();
-  });
-}
-sync();
-</script>
-
 <style>
-.card {
-  padding: 0;
-  gap: 0;
-}
-
 .body {
   flex: 1;
   display: flex;
@@ -179,71 +143,33 @@ h3 a:hover {
   transition-duration: var(--fast);
 }
 
-/* small segmented switch, like the one in the top bar (a filled track,
-     nested radii); the filled block (::before) slides under the chosen option */
-.installer {
-  position: relative;
-  display: inline-grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2px;
-  padding: 3px;
-  border-radius: 7px;
-  background: var(--fill);
-}
-
-.installer::before {
-  content: "";
-  position: absolute;
-  inset-block: 3px;
-  left: 3px;
-  width: calc(50% - 4px);
-  border-radius: 4px;
-  background: var(--text);
-  transition: transform var(--slow) var(--ease);
-}
-
-:global(:root[data-installer="pip"]) .installer::before {
-  transform: translateX(calc(100% + 2px));
-}
-
-.installer button {
-  position: relative; /* above the sliding block */
-  padding: 0.1rem 0.55rem;
-  border: 0;
-  border-radius: 4px;
-  background: none;
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.4;
-  cursor: pointer;
-}
-
-.installer button:hover {
-  color: var(--text);
-}
-
-.installer button[aria-pressed="true"] {
-  color: var(--bg);
-}
-
 /* fingers need taller targets than the pointer: same look, more padding */
 @media (pointer: coarse) {
-  .links a,
-  .installer button {
+  .links a {
     padding-block: 0.3rem;
   }
 }
 
-/* the command: a bar across the bottom edge of the card, sunk to the
-     page color */
+/* the command: a bar across the bottom edge of the card, the card's own
+     surface below a divider */
 .install :global(.terminal) {
   border-top: 1px solid var(--divider);
   border-radius: 0 0 var(--radius) var(--radius);
-  background: var(--bg);
   box-shadow: none;
 }
 
 .install :global(.terminal > code) {
   font-size: 0.84rem;
+}
+
+/* phones: GitHub's mobile sizes (global.css) */
+@media (max-width: 40rem) {
+  .links {
+    font-size: 0.875rem;
+  }
+
+  .install :global(.terminal > code) {
+    font-size: 0.8125rem;
+  }
 }
 </style>

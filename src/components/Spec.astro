@@ -1,0 +1,102 @@
+---
+// SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+// SPDX-License-Identifier: Apache-2.0
+
+// The hero's spec sheet (site.yaml: hero.spec): a raised box of cells, small
+// keys, large values. Nothing is drawn without rows.
+
+interface Props {
+  /** The cells, in order: a key, a large value and a note after it. */
+  rows: { key: string; value: string; note: string }[];
+}
+
+const { rows } = Astro.props;
+---
+
+{rows.length > 0 && (
+  <dl class="spec">
+    {rows.map((row) => (
+      <div>
+        <dt>{row.key}</dt>
+        <dd>
+          <strong>{row.value}</strong> <span>{row.note}</span>
+        </dd>
+      </div>
+    ))}
+  </dl>
+)}
+
+<style>
+/* Each cell draws its dividers into the 1px gaps (box-shadow); the outer
+     ones are clipped. Only --surface sits behind the rounded corners, so they
+     stay clean (a darker background would bleed through them).
+     Four cells: one row on wide screens, 2 × 2 below (auto-fit would
+     leave a lone cell on a second row). */
+.spec {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  max-width: 60rem;
+  margin: 2.75rem 0 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--raised);
+  overflow: hidden;
+}
+
+@media (min-width: 56rem) {
+  .spec {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.spec div {
+  padding: 0.8rem 1.1rem 0.9rem;
+  box-shadow: 0 0 0 1px var(--divider);
+}
+
+.spec dt {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.spec dd {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.spec strong {
+  display: block;
+  color: var(--text);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* phones (max-width: 40rem, as the tabs): right above the section tabs,
+   GitHub's mobile sizes */
+@media (max-width: 40rem) {
+  .spec {
+    margin-top: 0;
+  }
+
+  .spec div {
+    padding: 0.75rem 1rem;
+  }
+
+  .spec dt {
+    font-size: 0.75rem;
+  }
+
+  .spec dd {
+    font-size: 0.8125rem;
+  }
+
+  .spec strong {
+    font-size: 1.25rem;
+  }
+}
+</style>

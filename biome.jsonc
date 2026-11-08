@@ -79,7 +79,7 @@
         "noSvgWithoutTitle": "off"
       },
       "style": {
-        // Greys of the design tokens are hex colours (BRAND.md)
+        // Greys of the design tokens are hex colours
         "noHexColors": "off",
         // Short ternaries are idiomatic in templates (nested ones are not)
         "noTernary": "off",

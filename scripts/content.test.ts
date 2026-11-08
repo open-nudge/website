@@ -14,7 +14,6 @@ const errorPatterns = [
   /hero.lead/,
   /hero.title/,
   /unsupported link/,
-  /hidden project/,
   /only one/,
 ];
 const site = siteSchema.parse(parseYaml(readFileSync("src/content/site.yaml", "utf8"), "site.yaml"));
@@ -64,21 +63,13 @@ test("raw HTML and block headings report their field", () => {
   // biome-ignore lint/security/noSecrets: deliberately invalid link fixture
   assert.throws(() => validateMarkdown("[x](javascript:alert)", "hero.lead"), errorPatterns[4]);
 });
-test("references reject hidden projects and multiple featured projects", () => {
-  assert.throws(
-    () => validateReferences([{ id: "one", hidden: true }], [{ projects: ["one"] }]),
-    errorPatterns[5],
-  );
-  assert.throws(
-    () =>
-      validateReferences(
-        [
-          { id: "one", featured: true },
-          { id: "two", featured: true },
-        ],
-        [],
-      ),
-    errorPatterns[6],
-  );
-  assert.doesNotThrow(() => validateReferences([], []));
+test("references reject multiple featured projects", () => {
+  assert.throws(() => validateReferences([{ featured: true }, { featured: true }]), errorPatterns[5]);
+  assert.doesNotThrow(() => validateReferences([{ featured: true }, { featured: true, hidden: true }]));
+  assert.doesNotThrow(() => validateReferences([]));
+});
+test("nudges name projects as repositories", () => {
+  const nudge = (name: string) => ({ ...site, nudges: [{ title: "t", text: "t", projects: [name] }] });
+  assert.ok(siteSchema.safeParse(nudge("not-on-the-page")).success);
+  assert.ok(!siteSchema.safeParse(nudge("Not a repo")).success);
 });

@@ -1,0 +1,39 @@
+---
+// SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+// SPDX-License-Identifier: Apache-2.0
+
+// Icon button that copies `text` (<Terminal>). Hidden until
+// src/scripts/copy.ts finds the clipboard; styles: .copy in global.css.
+import { copyIcons, iconAttributes } from "../lib/code";
+import { site } from "../site.config";
+
+interface Props {
+  /** What the button copies. */
+  text: string;
+  /** Start of the accessible name; the copied text follows it. */
+  label: string;
+  /** Extra class (a switch option, e.g. `agent-codex`). */
+  class?: string;
+}
+
+const { text, label, class: className } = Astro.props;
+---
+
+<button
+  type="button"
+  class:list={["copy", className]}
+  data-copy={text}
+  data-copied={site.ui.copied}
+  data-copy-failed={site.ui.copyFailed}
+  aria-label={`${label} ${text}`}
+  title={site.ui.copy}
+  hidden
+>
+  {copyIcons.map((icon) => (
+    <svg {...iconAttributes()} class={icon.class}>
+      {icon.paths.map((d) => (
+        <path d={d} />
+      ))}
+    </svg>
+  ))}
+</button>

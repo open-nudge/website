@@ -10,7 +10,7 @@ import { site } from "../site.config";
 
 <button
   type="button"
-  class="theme-toggle"
+  class="icon-button theme-toggle"
   data-theme-toggle
   aria-label={site.ui.darkMode}
   aria-pressed="false"
@@ -65,28 +65,21 @@ sync();
 </script>
 
 <style>
-.theme-toggle {
-  display: inline-grid;
-  place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: none;
-  color: var(--text);
-  cursor: pointer;
-}
-
-.theme-toggle:hover {
-  background: var(--fill);
-}
-
+/* Its own layer in the page cross-fade, which turns it (global.css). Without
+   view transitions, or with reduced motion, it flips with the page. */
 .theme-toggle svg {
-  transition: transform 450ms var(--ease-in-out);
+  view-transition-name: theme-icon;
 }
 
-.theme-toggle[aria-pressed="true"] svg {
+/* The half moon turns inside the svg, never the svg itself: Firefox applies a
+   transform on the layer's own element twice (in the snapshot and on its
+   group), so the turn ended half a turn off and snapped back. */
+.theme-toggle path {
+  transform-box: view-box;
+  transform-origin: center;
+}
+
+.theme-toggle[aria-pressed="true"] path {
   transform: rotate(180deg);
 }
 </style>

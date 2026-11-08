@@ -2,39 +2,45 @@
 # SPDX-License-Identifier: Apache-2.0
 # Edit text here; see CONTRIBUTING.md for Markdown and multiline examples.
 # Prose supports Markdown. Labels, URLs, metadata and commands are plain text.
+# Page sections (template, agents, projects, nudgeSection, identity) are optional:
+# delete a block to drop that section, its phone tab and the links to it.
 ---
 name: "opennudge"
 url: "https://opennudge.com"
-title: "opennudge - intuitive open source tools (SSCS, AI)"
+title: "opennudge - intuitive open source tools (supply chain security, AI)"
 description: >-
-  Open source tools focused on supply chain security and code quality checks (human and agentic).
-  Priorities - ease of use and developer experience.
+  Open source supply chain security and code quality tools for humans and AI agents.
+  Built for ease of use and developer experience.
 email: "hello@opennudge.com"
 ui:
   github: "github"
   docs: "docs"
   pypi: "pypi"
-  tags: "Tags"
-  installWith: "Install with"
+  tags: "tags"
+  installWith: "install with"
   homeLabel: "opennudge home"
   githubLabel: "opennudge on GitHub"
-  darkMode: "Dark mode"
+  darkMode: "dark mode"
   skip: "skip to content"
   copy: "copy"
-  copyCommand: "Copy command:"
+  copyCommand: "copy command:"
+  shell: "shell"
   copied: "copied"
   copyFailed: "copy failed"
   uv: "uv"
   pip: "pip"
+  sections: "sections"
+  previous: "previous section"
+  next: "next section"
 hero:
   title: "developer-first tools"
   action: "jump in"
   motto: "small changes, large effects"
   lead: |-
-    switch on our tools (__one command!__) and:
-    - **develop faster with higher quality** (humans and agents)
-    - **easily test more thoroughly** (cross-OS, mutation testing)
-    - **release confidently** (SBOMs, VSAs, SLSA L3 and more)
+    turn on our tools (__one command!__) and:
+    - develop faster with higher quality (humans and agents)
+    - easily test more thoroughly (cross-OS, mutation testing)
+    - release confidently (SBOMs, VSAs, SLSA Build L3 and more)
 
     __everything out of the box!__
   points:
@@ -43,94 +49,122 @@ hero:
     - "open source"
     - "automation"
     - "developer experience"
+  # phones (max-width: 40rem) show these instead of `lead` and `points`
+  phone:
+    lead: |-
+      turn on our tools (__one command!__) and:
+      - develop faster with higher quality
+      - easily test more thoroughly
+      - release confidently
+    points:
+      - "supply chain security"
+      - "ai agents"
+      - "open source"
   spec:
-    - key: "setup with ease"
+    - key: "set up with ease"
       value: "1 click"
-      note: "1 command, 1 hardening"
+      note: "1 command"
     - key: "validate effortlessly"
       value: "100+"
       note: "automated quality tests"
-    - key: "less to review"
+    - key: "review less"
       value: "50+"
       note: "unique agentic checks"
-    - key: "audit with ease"
+    - key: "audit confidently"
       value: "100+"
-      note: "attested security artifacts"
+      note: "attested artifacts"
 template:
+  tab: "start here"
   eyebrow: "start here"
   action: "use this template"
   url: "https://github.com/new?template_owner=open-nudge&template_name=opentemplate"
-  text: >-
-    A new Python repository whose releases you can prove: SLSA Build and Source L3, attested SBOMs,
-    seven security scanners and hardened CI, on from the first commit. Around 100 workflows you
-    don't have to write. Every other opennudge project is built from it.
-  features:
-    - title: "SLSA Build L3"
-      text: >-
-        Wheels and sdists are built by a reusable workflow that runs no project code, and attested
-        in a separate job.
-    - title: "SLSA Source L3"
-      text: >-
-        Every `main` commit gets signed source provenance (public repositories); a release below L3
-        fails.
-    - title: "verified, not just signed"
-      text: "A Verification Summary Attestation records the SLSA level each release reached."
-    - title: "attested SBOMs"
-      text: >-
-        CycloneDX SBOMs per Python version, OS and dependency group, plus GitHub Actions and REUSE
-        ones.
-    - title: "scanned before it ships"
-      text: >-
-        uv audit, Trivy, Semgrep, GuardDog, zizmor, CodeQL and trufflehog; their reports are
-        attested and attached.
-    - title: "immutable releases"
-      text: >-
-        A release stays a draft until every check passes. Once published, its assets and tag can't
-        change.
-    - title: "hardened CI"
-      text: >-
-        Pinned actions, least-privilege tokens, an egress allow-list, and OpenSSF Scorecard every week.
-    - title: "one workflow to harden"
-      text: "`harden.yml` switches on rulesets, signed commits, required reviews and immutable releases."
+  text: |-
+    Create a new Python project with everything included (SLSA Build L3, attested SBOMs,
+    hardening and security scanners).
+
+    __You just code and commit__. Our checks take care of the rest.
+  # phones (max-width: 40rem) show this instead of `text`
+  phone:
+    text: |-
+      Create a new Python project with everything included
+      (SLSA Build L3, attested SBOMs, hardening, multiple security scanners).
+
+      - __You__ code, commit, do what you love
+      - __We__ make sure everything goes smoothly
   verify:
     title: "Don't take our word for it."
-    text: "Every release asset can be checked against the opentemplate workflow that built it:"
+    text: "Every release asset can be checked against the workflow that built it:"
+    # note: the indented arguments are part of the command
+    # yamllint disable rule:indentation
     command: |-
-      gh attestation verify project-1.0.0-py3-none-any.whl \
-      --repo you/project \
-      --signer-workflow open-nudge/opentemplate/.github/workflows/_release-build.yml
+      gh attestation verify your-project-1.0.0-py3-none-any.whl --repo you/project \
+        --signer-workflow open-nudge/opentemplate/.github/workflows/_release-build.yml
+    # phones: one argument per line, the long path split into variables
+    phoneCommand: |-
+      repo=open-nudge/opentemplate
+      workflows=.github/workflows
+
+      gh attestation verify \
+        your-project-1.0.0-py3-none-any.whl \
+        --repo you/project \
+        --signer-workflow \
+        "$repo/$workflows/_release-build.yml"
+    # yamllint enable rule:indentation
 agents:
-  eyebrow: "for agents"
-  title: "agent-ready"
-  text: >-
-    Every linter built with [lintkit](#lintkit) has an `mcp` command. Add [pynudger](#pynudger) to
-    Claude Code, Cursor or any other MCP client, and your agent checks and fixes its own code while
-    it writes. Fewer review rounds: you only see code that already passes.
-  note: "Agents can also read [/llms.txt](/llms.txt), a plain-text map of this site."
-  commandLabel: "start the MCP server"
-  configLabel: "or in your MCP client config"
+  tab: "for agents"
+  title: "nudge your agents"
+  text: |-
+    Every linter built with [`lintkit`](#lintkit) has an `mcp` subcommand. Add [`pynudger`](#pynudger) to
+    your harness and __your agents can__:
+    - __validate code__
+    - __read rule descriptions__
+    - __check positive and negative usage examples__
+  # phones (max-width: 40rem) show this instead of `text`
+  phone:
+    text: |-
+      Every linter built with [`lintkit`](#lintkit) has an `mcp` subcommand. Add [`pynudger`](#pynudger) to
+      your harness and __your agents can__:
+      - __validate code__
+      - __read rule descriptions__
+      - __check usage examples__
+  # desktop only
+  note: "Works with any opennudge [linter](#linters)."
+  commandLabel: "start the MCP server manually"
+  addLabel: "or add it to your harness"
+  switchLabel: "agent"
+  # the switch, Claude Code first (the default)
+  clients:
+    claude: "Claude"
+    codex: "Codex"
+    opencode: "OpenCode"
+    pi: "Pi"
+    antigravity: "Antigravity"
+# desktop only: the line under the project groups
 projects:
-  label: "projects"
   ships: "every project is built from opentemplate and ships with"
   benefits:
-    - "SLSA provenance"
+    - "verifiable SLSA provenance"
     - "SBOMs"
     - "OSSF Scorecard"
     - "100% test coverage"
     - "Apache-2.0"
 nudgeSection:
+  tab: "nudging"
   title: "how we nudge"
-  text: "Small, well-placed changes that compound across a codebase."
+  text: "small changes that compound across your codebase"
 groups:
   linters:
-    title: "agentic linters"
-    text: "Run by your agents over MCP and by prek on every commit."
+    title: "linters"
+    tab: "linters"
+    text: "tools that check your code (handcrafted or agentic)"
   automation:
     title: "automation"
-    text: "Verifiable versions, supported Python versions and config loading, on autopilot."
+    tab: "automation"
+    text: "solving boring boilerplate problems for you"
   pytorch:
     title: "pytorch"
-    text: "Libraries for building neural networks with less boilerplate."
+    tab: "pytorch"
+    text: "libraries for building neural networks with less boilerplate"
 links:
   github: "https://github.com/open-nudge"
   source: "https://github.com/open-nudge/website"
@@ -139,35 +173,31 @@ links:
   llms: "/llms.txt"
   agents: "/#agents"
 nudges:
-  - title: "good defaults"
-    text: "Start secure: SLSA L3 provenance, attested SBOMs and hardened CI, switched on in one click."
+  - title: "sensible defaults"
+    text: >-
+      Our software doesn't take hours to configure.
+      Focus on what matters instead of learning new tools.
     projects:
       - "opentemplate"
-  - title: "feedback while you write"
-    text: "Checks run at commit time and over MCP, so agents fix their own code before you review it."
-    projects:
-      - "lintkit"
+      - "loadfig"
       - "pynudger"
-  - title: "explain, don't ban"
-    text: "Any rule can be ignored, as long as the reason is written down next to it."
+  - title: "the best path is the easiest"
+    text: |-
+      We make bad decisions harder to make,
+      and best practices simpler to follow.\
+      Get all the benefits at no cost.
     projects:
+      - "opentemplate"
       - "noqaexplain"
-  - title: "less friction"
+      - "pynudger"
+  - title: "solve once and forget"
     text: >-
-      Turn chores like versioning you can verify, Python upgrades and config loading into one-liners
-      that run themselves.
+      Some tasks are valuable but repetitive.
+      Our tools automate them, so you can focus on what you __actually__ do.
     projects:
+      - "opentemplate"
       - "comver"
       - "cogeol"
-      - "loadfig"
-  - title: "your nudge"
-    text: "Know a small change with a large effect? Open an issue, or send a pull request."
-    # enq: only way to specify empty list
-    # yamllint disable-line rule:brackets
-    projects: []
-    link:
-      href: "https://github.com/open-nudge/.github/issues"
-      label: "open an issue"
 footer:
   contact: "contact"
   github: "github.com/open-nudge"
@@ -182,12 +212,12 @@ notFound:
   title: "page not found"
   code: "404"
   heading: "nothing here"
-  text: "This page does not exist (or not anymore). A small nudge back:"
+  text: "This page doesn't exist (or no longer does). A small nudge back:"
   action: "home"
 llms:
   intro: |-
     opennudge builds open source tooling for supply chain security and AI agents (Python first).
-    opentemplate, the core project, gives a new Python repository SLSA Build and Source L3
+    opentemplate, the core project, gives a new Python repository SLSA Build L3
     provenance, attested SBOMs, security scanners and hardened CI. Linters built with lintkit
     expose an MCP server via an `mcp` subcommand, so coding agents can run the same checks as CI.
   install: "Install"
@@ -201,7 +231,8 @@ llms:
   infoText: "how opennudge projects are built"
   contact: "Contact"
 identity:
-  eyebrow: "about"
+  tab: "values"
+  eyebrow: "values"
   title: "human-first tooling"
   values:
     - name: "convenience"
@@ -211,8 +242,9 @@ identity:
     - name: "openness"
       text: "willingness to share, transparency by default"
   mission: >-
-    opennudge gives programmers intuitive, open and free tools to build the software of their dreams.
-  vision: "Make the secure, well-tested path the one that takes the least effort."
+    opennudge gives programmers intuitive, open and free tools that remove
+    boilerplate, so they can focus on the software they want to build.
+  vision: "making best practices easy"
 language: "en"
 projectDefaults:
   docsBase: "https://open-nudge.github.io"

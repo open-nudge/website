@@ -145,7 +145,7 @@ repo = "meta"
 
 [[repos]]
 repo = "https://github.com/siderolabs/conform"
-rev = "cfdb3cce90daece912e6a5cb3f20b2316a78a5bf" # frozen: v0.1.0-alpha.31
+rev = "57c5cc3cabc0c9219d69673cfa8faa49c2db76fb" # frozen: v0.1.0-alpha.32
 
   [[repos.hooks]]
   id = "conform"
@@ -161,7 +161,7 @@ rev = "cfdb3cce90daece912e6a5cb3f20b2316a78a5bf" # frozen: v0.1.0-alpha.31
 
 [[repos]]
 repo = "https://github.com/compilerla/conventional-pre-commit"
-rev = "91ab4bf57e58b32adf1a122681f6ebe164d081c8"  # frozen: v4.4.0
+rev = "33b50eb042bee26eac0ee96ad84aa9c1b4dccdd8"  # frozen: v4.5.0
 
   # Only feat and fix commits, without scopes (as in opentemplate)
   [[repos.hooks]]
@@ -185,7 +185,7 @@ rev = "e76dff8a7e57d6df0c60ad8cbf5d5cba505a8fc9" # frozen: v3.99.2
 
 [[repos]]
 repo = "https://github.com/semgrep/pre-commit"
-rev = "8e64a20b3807724512502aff9a03b22356e1462f" # frozen: v1.181.1
+rev = "a19f9deb8c211c43e469e994fa8ee15178bc1b1d" # frozen: v1.183.0
 
   [[repos.hooks]]
   id = "semgrep"
@@ -224,7 +224,7 @@ rev = "8e64a20b3807724512502aff9a03b22356e1462f" # frozen: v1.181.1
 
 [[repos]]
 repo = "https://github.com/fsfe/reuse-tool"
-rev = "a1bb792acda6fd0724936b4ebbdbc8eceb9c0459"  # frozen: v6.2.0
+rev = "ea739bff9c6daa1c4c8a5c5dfd069f3fb0374728"  # frozen: v6.3.0
 
   [[repos.hooks]]
   id = "reuse"
@@ -284,7 +284,7 @@ repo = "local"
   require_serial = true
   exclude = """(?x)^(
     DCO.md|LICENSE|LICENSES/.*|REUSE.toml|.*\\.license|
-    .*\\.astro|public/.*|src/assets/brand/.*
+    .*\\.astro|public/.*|src/assets/(agents|brand)/.*
   )$"""
   priority = 50
 
@@ -320,7 +320,7 @@ rev = "57b21406f092110c18776e39b0bda50d37c945c8"  # frozen: v2.4.3
 
 [[repos]]
 repo = "https://github.com/errata-ai/vale"
-rev = "d7a379da688e3ec07138ef94e4f0f0889954d617" # frozen: v3.25.1
+rev = "e2d4374b1c66c8a1dd6d912bebc135040d8833fa" # frozen: v3.26.0
 
   [[repos.hooks]]
   id = "vale"

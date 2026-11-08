@@ -1,0 +1,161 @@
+---
+// SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+// SPDX-License-Identifier: Apache-2.0
+
+// A small segmented capsule switch: a raised track, the --inverse block
+// sliding under the chosen option (radii nested). One click sets <html
+// data-{name}> and switches every <Switch> of that name, and global.css
+// shows the matching options (<Terminal switch>). The
+// choice is stored and restored before first paint by Base.astro. Without
+// JavaScript the switch stays hidden and the first option is shown.
+// Behavior: src/scripts/switch.ts.
+import type { SvgComponent } from "astro/types";
+
+interface Props {
+  /** The choice: <html data-{name}>, localStorage[name] and option classes `{name}-{value}`. */
+  name: string;
+  /** The options, the default first. */
+  options: {
+    value: string;
+    label: string;
+    /** A small logo before the label (an imported SVG). */
+    icon?: SvgComponent;
+  }[];
+  /** Accessible name of the group (e.g. "Install with"). */
+  label: string;
+  /** As wide as its container, the options sharing the room (else as wide
+   * as its labels). */
+  stretch?: boolean;
+}
+
+const { name, options, label, stretch = false } = Astro.props;
+---
+
+{/* biome-ignore lint/a11y/useSemanticElements: a fieldset brings form styling (border, padding, min-width) to a switch of buttons, role=group is its ARIA equivalent */}
+<div
+  class:list={["switch", { stretch }]}
+  role="group"
+  aria-label={label}
+  data-switch={name}
+  data-default={options[0]?.value}
+  hidden
+>
+  <span class="block" aria-hidden="true"></span>
+  {options.map(({ value, label: text, icon: Icon }, index) => (
+    <button type="button" data-value={value} aria-pressed={index === 0 ? "true" : "false"}>
+      {Icon && <Icon class="icon" aria-hidden="true" focusable="false" />}
+      <span class:list={["text", { "with-icon": Icon }]}>{text}</span>
+    </button>
+  ))}
+</div>
+
+<script>
+import "../scripts/switch";
+</script>
+
+<style>
+.switch {
+  position: relative;
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--pill);
+  background: var(--surface);
+  box-shadow: var(--raised);
+}
+
+.stretch {
+  display: flex;
+}
+
+/* labels keep their widths and share what is left */
+.stretch button {
+  flex: 1 1 auto;
+  padding-inline: 0.4rem;
+}
+
+/* the hidden attribute must win over display above */
+.switch[hidden] {
+  display: none;
+}
+
+.block {
+  position: absolute;
+  inset-block: 3px;
+  left: 0;
+  width: var(--w, 0);
+  border-radius: var(--pill);
+  background: var(--inverse);
+  transform: translateX(var(--x, 0));
+  opacity: 0;
+}
+
+/* shown once the script has measured the chosen option */
+.switch[data-ready] .block {
+  opacity: 1;
+}
+
+.switch[data-animate] .block {
+  transition:
+    transform var(--slow) var(--ease),
+    width var(--slow) var(--ease);
+}
+
+button {
+  position: relative; /* above the sliding block */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  padding: 0.1rem 0.65rem;
+  border: 0;
+  border-radius: var(--pill);
+  background: none;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+button:hover {
+  color: var(--text);
+}
+
+button[aria-pressed="true"] {
+  color: var(--on-inverse);
+}
+
+/* logos: one-color ones follow the label's color (also on the chosen,
+   filled option), colored ones keep theirs */
+.icon {
+  flex: none;
+  width: 1.1em;
+  height: 1.1em;
+}
+
+/* phones: five logos with names don't fit, the logos stay (the names
+   remain for screen readers) */
+@media (max-width: 40rem) {
+  .with-icon {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .icon {
+    width: 1.35em;
+    height: 1.35em;
+  }
+}
+
+/* fingers need taller targets than the pointer: same look, more padding */
+@media (pointer: coarse) {
+  button {
+    padding-block: 0.3rem;
+  }
+}
+</style>

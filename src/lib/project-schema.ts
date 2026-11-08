@@ -21,6 +21,14 @@ export const projectSchema = (groups: Record<string, unknown>) =>
     install: z.string().optional(),
     /** Alternative to `install`: short numbered steps. */
     steps: z.array(prose).optional(),
+    /** Phones show these instead (only the featured project); each falls back
+     * to the desktop one. */
+    phone: z
+      .strictObject({
+        steps: z.array(prose).optional(),
+        tags: z.array(z.string()).optional(),
+      })
+      .optional(),
     /** `<name> mcp` starts an MCP server (from the `[mcp]` extra). */
     mcp: z.boolean().default(false),
     featured: z.boolean().default(false),
@@ -34,19 +42,11 @@ export const projectSchema = (groups: Record<string, unknown>) =>
 export const projectsSchema = (groups: Record<string, unknown>) =>
   z.record(z.string().regex(projectName), projectSchema(groups));
 
-export function validateReferences(
-  projects: { id: string; hidden?: boolean; featured?: boolean }[],
-  nudges: { projects: string[] }[],
-) {
+export function validateReferences(projects: { hidden?: boolean; featured?: boolean }[]) {
   const visible = projects.filter((project) => !project.hidden);
   if (visible.filter((project) => project.featured).length > 1) {
     throw new Error("projects.yaml: only one visible featured project is allowed");
   }
-  for (const [index, nudge] of nudges.entries()) {
-    for (const name of nudge.projects) {
-      if (!visible.some((project) => project.id === name)) {
-        throw new Error(`site.yaml:nudges.${index}.projects: unknown or hidden project "${name}"`);
-      }
-    }
-  }
 }
+
+export { projectName };

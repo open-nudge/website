@@ -19,8 +19,7 @@ const start = (project: Project) => {
 export const GET: APIRoute = () => {
   const lines: string[] = [`# ${site.name}`, "", `> ${site.description}`, "", site.llms.intro, ""];
 
-  const groups = groupProjects(projects);
-  for (const group of groups) {
+  for (const group of groupProjects(projects)) {
     lines.push(`## ${plainText(group.title)}`, "");
     for (const project of group.projects) {
       const mcp = project.mcp ? ` ${site.llms.mcp}: \`${project.mcp}\`.` : "";

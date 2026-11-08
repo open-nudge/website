@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
 // SPDX-License-Identifier: Apache-2.0
 
+import Arrow from "../components/Arrow.astro";
 import Markdown from "../components/Markdown.astro";
 import Base from "../layouts/Base.astro";
 import { site } from "../site.config";
@@ -13,7 +14,9 @@ import { site } from "../site.config";
     <h1><Markdown inline text={site.notFound.heading} /></h1>
     <Markdown class="lead muted" text={site.notFound.text} />
     <p>
-      <a class="button primary" href={site.links.home}>{site.notFound.action} <span class="arrow">→</span></a>
+      <a class="button primary" href={site.links.home}>
+        {site.notFound.action} <Arrow direction="right" bounce />
+      </a>
     </p>
   </section>
 </Base>

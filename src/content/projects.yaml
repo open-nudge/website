@@ -13,6 +13,9 @@
 #     - "..."
 #   mcp: true               # `name mcp` starts an MCP server (needs the [mcp] extra)
 #   featured: true          # the large "start here" block (one project)
+#   phone:                  # featured only: phones show these instead of `steps` / `tags`
+#     steps: ["..."]
+#     tags: ["..."]
 #   hidden: true            # kept here, but not shown anywhere
 #
 # Links are derived from the name; set `repo`, `docs` or `pypi` only when they differ:
@@ -22,49 +25,61 @@
 
 ---
 opentemplate:
-  description: "All-in-one Python template. One click. Everything included."
+  description: "All-in-one, modern and secure Python template."
   group: "automation"
   featured: true
   steps:
-    - "Click \"Use this template\" on GitHub and add a description"
-    - "Wait for the automated setup commit"
-    - "Clone it and run `uv run poe setup`"
-    - "Follow the setup issue to run `harden.yml`"
+    - "click `use this template` and add a description"
+    - "wait for the automated setup workflow to finish"
+    - "clone it and run `uv run poe setup`"
+    - "follow the issue it opens to harden the repository"
   tags:
     - "GitHub template"
-    - "SLSA L3"
-    - "attested SBOMs"
-    - "uv + prek"
+    - "uv"
+    - "prek"
+    - "OSSF"
+    - "versioning"
+    - "releasing"
+  # phones (max-width: 40rem) show these instead of `steps` and `tags`
+  phone:
+    steps:
+      - "click `use this template`"
+      - "wait for the setup workflow"
+      - "clone and run `uv run poe setup`"
+    tags:
+      - "GitHub template"
+      - "uv"
+      - "prek"
+      - "OSSF"
+      - "releasing"
 
 lintkit:
-  description: "Custom linters in ~20 lines of Python. For Python, YAML, JSON and TOML."
+  description: "Create linters in ~20 lines of Python. Lint Python, YAML, JSON and TOML."
   group: "linters"
   install: "lintkit[all]"
   tags:
     - "framework"
     - "noqa support"
-    - "MCP for every linter you build"
-
-noqaexplain:
-  description: "Every ignored lint rule needs a written reason. Ruff, eslint, clippy and more."
-  group: "linters"
-  install: "noqaexplain[all]"
-  # mcp: true  # has one, left out of the agent-ready section for now
-  tags:
-    - "CLI"
-    - "pre-commit hook"
-    - "MCP server"
-    - "many languages"
+    - "MCP"
 
 pynudger:
-  description: "Highly opinionated semantic linter. Tells you where code belongs and how to name it."
+  description: "Semantic linter - Python code quality rules for humans and agents."
   group: "linters"
   install: "pynudger[all]"
   mcp: true
   tags:
-    - "CLI"
-    - "pre-commit hook"
-    - "MCP server"
+    - "naming"
+    - "refactoring"
+    - "modularization"
+
+noqaexplain:
+  description: "Every ignored lint rule needs a written explanation above it."
+  group: "linters"
+  install: "noqaexplain[all]"
+  # mcp: true  # has one, left out of the agent-ready section for now
+  tags:
+    - "customizable"
+    - "10+ linters supported"
 
 pratidoc:
   description: "Lint your repository docs. Ensure the essentials are always there."
@@ -76,31 +91,34 @@ pratidoc:
     - "pre-commit hook"
     - "repo-wide"
 
+loadfig:
+  description: >-
+    Load your config from pyproject.toml in one line, with automatic discovery.
+  group: "automation"
+  install: "loadfig"
+  tags:
+    - "multiconfig"
+    - "git-aware"
+    - "Python only"
+
 comver:
-  description: "Semantic versions from commits alone. No tags; verifiable by SHA and checksum."
+  description: "Always-correct semantic versioning based on commits (no tags needed)."
   group: "automation"
   install: "comver"
   tags:
     - "CLI"
-    - "pdm / hatch plugin"
-    - "verifiable versions"
+    - "plugin"
+    - "hatch"
+    - "verification"
 
 cogeol:
-  description: "Always up-to-date Python versions in pyproject.toml and CI, via endoflife.date."
+  description: "Always up-to-date Python versions in pyproject.toml and CI (hook included)."
   group: "automation"
   install: "cogeol"
   tags:
     - "SPEC0"
-    - "cog based"
-
-loadfig:
-  description: >-
-    Load your project's config in one line. pyproject.toml and .config support, zero dependencies.
-  group: "automation"
-  install: "loadfig"
-  tags:
-    - "no dependencies"
-    - "git aware"
+    - "cog-based"
+    - "endoflife.date"
 
 torchlayers:
   description: "Shape and dimension inference (Keras-like) for PyTorch layers and neural networks."

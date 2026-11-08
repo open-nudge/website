@@ -1,60 +1,20 @@
 // SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
 // SPDX-License-Identifier: Apache-2.0
 
-// Code highlighting (<CodeBlock>) and the small icons shared by components.
-//
-// Theme: Kanagawa, lotus (light) and dragon (dark). Both were tuned for their
-// own backgrounds; on our gray code surface some tokens fall below 4.5:1, so
-// those are darkened / lifted (same hue) to at least 4.6:1. Recompute them
-// when changing --surface in src/styles/global.css.
-import kanagawaDragon from "@shikijs/themes/kanagawa-dragon";
-import kanagawaLotus from "@shikijs/themes/kanagawa-lotus";
+// The small icons shared by components.
 
-export const codeThemes = {
-  light: {
-    ...kanagawaLotus,
-    name: "opennudge-lotus",
-    colorReplacements: {
-      "#716e61": "#676559",
-      "#cc6d00": "#995200",
-      "#e82424": "#c91515",
-      "#d9a594": "#9b4f37",
-      "#77713f": "#6b6639",
-      "#4e8ca2": "#3c6b7c",
-      "#4d699b": "#4a6494",
-      "#6693bf": "#3d6891",
-      "#c84053": "#b73547",
-      "#b35b79": "#9e4966",
-      "#6f894e": "#566a3c",
-      "#597b75": "#4d6b66",
-      "#6e915f": "#526c47",
-      "#d7474b": "#bf2a2e",
-      "#de9800": "#875d00",
-      "#836f4a": "#746342",
-    },
-  },
-  dark: {
-    ...kanagawaDragon,
-    name: "opennudge-dragon",
-    colorReplacements: {
-      "#737c73": "#939b93",
-      "#e82424": "#f07272",
-      "#8992a7": "#9099ac",
-      "#c4746e": "#cc8782",
-      "#8a9a7b": "#8f9e80",
-      "#76946a": "#86a07b",
-      "#c34043": "#d78183",
-      "#a292a3": "#a394a4",
-      "#b98d7b": "#bb907e",
-    },
-  },
-};
-
-/** Copy button icons (<Terminal>): "idle" and "done" (after copying). */
+/** Copy button icons (<CopyButton>): "idle" and "done" (after copying). */
 export const copyIcons = [
   { class: "idle", paths: ["M5.75 5.75h7.5v7.5h-7.5z", "M10.25 5.75v-3h-7.5v7.5h3"] },
   { class: "done", paths: ["m3 8.5 3 3 7-7"] },
 ];
+
+/** Right-pointing chevron (<Tabs>: the carousel's arrows; mirrored for "previous"). */
+export const chevronPath = "m6 3.5 4.5 4.5L6 12.5";
+
+/** opennudge.com's bouncing arrow: a filled chevron pointing down (24x24). */
+export const arrowPath =
+  "M12 17c-.3 0-.6-.1-.8-.3l-6-6a1 1 0 0 1 1.4-1.4L12 14.6l5.4-5.3a1 1 0 1 1 1.4 1.4l-6 6c-.2.2-.5.3-.8.3z";
 
 /**
  * Attributes of our 16x16 stroke icons. A function, not a shared object: Astro
