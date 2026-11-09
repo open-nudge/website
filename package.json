@@ -25,7 +25,7 @@
     "test": "node --experimental-strip-types --input-type=module -e \"import './scripts/content.test.ts'\""
   },
   "dependencies": {
-    "@shikijs/themes": "4.5.0",
+    "@shikijs/themes": "4.6.0",
     "astro": "7.3.5",
     "marked": "18.1.1",
     "yaml": "2.9.1"
