@@ -1,0 +1,89 @@
+---
+// SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+// SPDX-License-Identifier: Apache-2.0
+
+import "../styles/global.css";
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import { site } from "../site.config";
+
+interface Props {
+  /** Page title; the site name is appended automatically. */
+  title?: string;
+  /** Keep the page out of search engines (404), instead of a canonical link. */
+  noindex?: boolean;
+}
+
+const { title, noindex = false } = Astro.props;
+
+const fullTitle = title ? `${title} · ${site.name}` : site.title;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const imageUrl = new URL("/og.png", Astro.site);
+---
+
+<!doctype html>
+<html lang={site.language}>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>{fullTitle}</title>
+    <meta name="description" content={site.description}>
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+
+    <!-- Apply stored choices before the first paint (no flash): light/dark,
+         uv/pip and the agent (<Switch>, src/scripts/switch.ts). -->
+    <script is:inline>
+    try {
+      const root = document.documentElement;
+      const theme = localStorage.getItem("theme");
+      if (theme === "light" || theme === "dark") {
+        root.dataset.theme = theme;
+      }
+      if (localStorage.getItem("installer") === "pip") {
+        root.dataset.installer = "pip";
+      }
+      const agent = localStorage.getItem("agent");
+      if (["codex", "opencode", "pi", "antigravity"].includes(agent)) {
+        root.dataset.agent = agent;
+      }
+    } catch {
+      // storage unavailable (private mode): follow the OS setting, uv and Claude
+    }
+    </script>
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#f1f3f4" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#353739" media="(prefers-color-scheme: dark)">
+
+    <link rel="icon" href="/favicon.ico" sizes="32x32">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="alternate" type="text/plain" title="llms.txt" href={site.links.llms}>
+    <slot name="head" />
+
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:site_name" content={site.name}>
+    <meta property="og:title" content={fullTitle}>
+    <meta property="og:description" content={site.description}>
+    <meta property="og:url" content={canonical}>
+    <meta property="og:image" content={imageUrl}>
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content={`${site.name}: ${site.hero.motto}`}>
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content={fullTitle}>
+    <meta name="twitter:description" content={site.description}>
+    <meta name="twitter:image" content={imageUrl}>
+  </head>
+  <body>
+    <a class="skip" href="#main">{site.ui.skip}</a>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <script>
+    import "../scripts/copy";
+    </script>
+  </body>
+</html>

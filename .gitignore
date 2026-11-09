@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+# SPDX-License-Identifier: Apache-2.0
+
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+
+# environment variables
+.env
+.env.*
+!.env.example
+
+# editors / OS
+.DS_Store
+.idea/
+.vscode/
+
+# link checker cache (lychee.toml)
+.lycheecache

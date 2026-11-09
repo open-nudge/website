@@ -1,0 +1,183 @@
+---
+// SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+// SPDX-License-Identifier: Apache-2.0
+
+import { agentReady } from "../lib/projects";
+import { site } from "../site.config";
+import Logo from "./Logo.astro";
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="wrap cols">
+    <div class="about">
+      <Logo variant="mark" height={34} decorative />
+      <p>
+        <strong>{site.name}</strong>
+        <span class="muted motto">{site.hero.motto}</span>
+      </p>
+    </div>
+
+    <div class="contact">
+      <h2>{site.footer.contact}</h2>
+      <ul>
+        <li><a href={`mailto:${site.email}`}>{site.email}</a></li>
+        <li><a href={site.links.github}>{site.footer.github}</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h2>{site.footer.agents}</h2>
+      <ul>
+        <li><a href={site.links.llms}>{site.footer.llms}</a></li>
+        {site.agents && agentReady.length > 0 && (
+          <li>
+            <a href={site.links.agents}>{site.footer.mcp}</a>
+          </li>
+        )}
+      </ul>
+    </div>
+
+    <div>
+      <h2>{site.footer.organization}</h2>
+      <ul>
+        <li><a href={site.links.info}>{site.footer.info}</a></li>
+        <li><a href={site.links.source}>{site.footer.source}</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="legal">
+      <span>© {year} {site.name}</span>
+      <span>{site.footer.license}</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+.site-footer {
+  border-top: 1px solid var(--line);
+  /* the bottom stays clear of the iPhone home indicator */
+  padding-block: 3rem calc(2rem + env(safe-area-inset-bottom, 0px));
+  font-size: 0.92rem;
+}
+
+.cols {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: 1.5fr repeat(3, 1fr);
+}
+
+.about {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+}
+
+.about p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* under the name; on phones beside it: "opennudge · small changes, ..." */
+.motto {
+  display: block;
+}
+
+h2 {
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  margin: 0 0 0.6rem;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+/* long links (the email address) break instead of overflowing */
+a {
+  overflow-wrap: anywhere;
+}
+
+/* phones: each link a comfortable touch target */
+@media (pointer: coarse) {
+  ul {
+    gap: 0;
+  }
+
+  li a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.5rem;
+  }
+}
+
+.legal {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 48rem) {
+  .cols {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* full rows: the logo, and the long email / GitHub links (in a half
+     column they would break mid-word); the other two lists share a row */
+  .about,
+  .contact {
+    grid-column: 1 / -1;
+  }
+}
+
+/* small phones: one column, one left edge */
+@media (max-width: 30rem) {
+  .cols {
+    grid-template-columns: 1fr;
+  }
+
+  .legal {
+    flex-direction: column;
+  }
+}
+
+/* phones: GitHub's mobile sizes (global.css), name and motto on one line */
+@media (max-width: 40rem) {
+  .site-footer {
+    font-size: 0.875rem;
+  }
+
+  .legal {
+    font-size: 0.8125rem;
+  }
+
+  .about {
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .motto {
+    display: inline;
+  }
+
+  .motto::before {
+    content: "·" / "";
+    margin-inline: 0.35em;
+  }
+}
+</style>

@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: © 2026 open-nudge <https://github.com/open-nudge>
+# SPDX-License-Identifier: Apache-2.0
+
+# Markdown formatting (prek: mdformat), paragraphs are wrapped at 80 columns
+# to match the line length checked by pymarkdown (.pymarkdown.yaml)
+wrap = 80
+end_of_line = "lf"
