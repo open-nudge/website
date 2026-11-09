@@ -5,12 +5,39 @@ SPDX-License-Identifier: Apache-2.0
 
 # opennudge.com
 
+<!-- enq: badge alt texts are labels, not prose -->
+
+<!-- vale off -->
+
+<!-- enq: badge markup contains generated URLs that cannot fit the line limit -->
+
+<!-- pyml disable-num-lines 15 line-length-->
+
+<div align="center">
+
+<a href="https://github.com/open-nudge/website/releases">![Release](https://img.shields.io/github/v/release/open-nudge/website?style=for-the-badge&label=release&labelColor=grey&color=blue)
+</a>
+<a href="https://www.typescriptlang.org">![TypeScript Version](https://img.shields.io/github/package-json/dependency-version/open-nudge/website/dev/typescript?style=for-the-badge&label=typescript&labelColor=grey&color=blue)
+</a>
+<a href="https://astro.build">![Astro Version](https://img.shields.io/github/package-json/dependency-version/open-nudge/website/astro?style=for-the-badge&label=astro&labelColor=grey&color=blue)
+</a>
+<a href="https://scorecard.dev/viewer/?uri=github.com/open-nudge/website">![OSSF-Scorecard Score](https://img.shields.io/ossf-scorecard/github.com/open-nudge/website?style=for-the-badge&label=OSSF)
+</a>
+
+</div>
+
+<!-- enq: prose checks resume after the badges -->
+
+<!-- vale on -->
+
 Source of [opennudge.com](https://opennudge.com), the home of
 [opennudge](https://github.com/open-nudge): developer-first open source tooling
 for supply chain security and AI agents.
 
 The site is a small static website built with [Astro](https://astro.build) and
-published to GitHub Pages on every push to `main`.
+published to GitHub Pages on every push to `main`. Each deployment is released
+as the next version (`vX.Y.Z`, from the conventional commits since the last
+one).
 
 - **No JavaScript framework**: plain HTML and CSS, under 2 KB of JS per page
   (theme switch, uv/pip tabs, copy buttons).
