@@ -168,7 +168,8 @@ changes, stage them and commit again.
   (workflows), `npm audit` (advisories and registry signatures).
 - **Commits**: messages start with `feat:` or `fix:`; every commit is signed off
   and GPG signed (`git commit -s -S`, see [DCO.md](DCO.md)), checked before
-  push. Commits to `main` go through pull requests.
+  push. Commits to `main` go through pull requests. The prefix sets the next
+  version (see [Deployment](#deployment)).
 
 No rule is turned off silently: an `enq:` comment above `yamllint disable` or
 `<!-- vale ... -->` says why (checked by noqaexplain).
@@ -251,6 +252,14 @@ ones without new commits are marked stale after 14 days and closed after 28.
 Pushes to `main` are then deployed to GitHub Pages, which serves the site at
 https://opennudge.com.
 
+Every deployment is then released: the _Release_ job tags the deployed commit as
+the next `vX.Y.Z` and publishes a GitHub release with generated notes. The bump
+comes from the commits since the last tag (the first release counts from
+`0.0.0`): `feat:` bumps the minor version, `fix:` the patch version, and `!`
+after the type (`feat!:`) or a `BREAKING CHANGE:` line in the description the
+major version. The version lives in tags only: `main` accepts pull requests
+only, so `package.json` stays at `0.0.0`.
+
 To run your own copy:
 
 1. Fork the repository and set _Settings → Pages → Source_ to _GitHub Actions_.
@@ -268,10 +277,11 @@ The scripts in `.github/tools/harden/` apply the repository settings once the
 repository is public, either locally or through `.github/workflows/harden.yml`:
 squash merges only (pull request title as the commit), the rulesets in
 `.github/rulesets/` (signed commits, no force pushes, pull requests and the
-checks above required on `main`, no tags), GitHub Pages with the custom domain,
-deployments from `main` only, secret scanning with push protection, Dependabot
-alerts and security updates, private vulnerability reporting and CodeQL. Every
-script can be run again (for example when someone joins as a maintainer).
+checks above required on `main`, only `vX.Y.Z` release tags, never moved or
+deleted), GitHub Pages with the custom domain, deployments from `main` only,
+secret scanning with push protection, Dependabot alerts and security updates,
+private vulnerability reporting and CodeQL. Every script can be run again (for
+example when someone joins as a maintainer).
 
 Merge the initial work into `main` first: the pull request checks run from
 `main` (`pull_request_target`), so once the rulesets require them, a pull
