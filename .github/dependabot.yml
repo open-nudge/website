@@ -17,6 +17,12 @@ updates:
       default-days: 7
     commit-message:
       prefix: "fix"
+    # @astrojs/check (latest 0.9.12) peers typescript ^5 || ^6; drop this
+    # once a release accepts TypeScript 7
+    ignore:
+      - dependency-name: "typescript"
+        update-types:
+          - "version-update:semver-major"
     groups:
       astro:
         patterns:
