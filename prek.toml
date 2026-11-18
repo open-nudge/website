@@ -145,7 +145,7 @@ repo = "meta"
 
 [[repos]]
 repo = "https://github.com/siderolabs/conform"
-rev = "57c5cc3cabc0c9219d69673cfa8faa49c2db76fb" # frozen: v0.1.0-alpha.32
+rev = "18598907d4315be915a0c446fdd8aa9b47ba2c22" # frozen: v0.1.0-alpha.33
 
   [[repos.hooks]]
   id = "conform"
@@ -185,7 +185,7 @@ rev = "e76dff8a7e57d6df0c60ad8cbf5d5cba505a8fc9" # frozen: v3.99.2
 
 [[repos]]
 repo = "https://github.com/semgrep/pre-commit"
-rev = "a19f9deb8c211c43e469e994fa8ee15178bc1b1d" # frozen: v1.183.0
+rev = "14ad2383dd6f19216cc78ba8ea1d4f607fc29df1" # frozen: v1.185.0
 
   [[repos.hooks]]
   id = "semgrep"
