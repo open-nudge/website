@@ -32,7 +32,7 @@ check. Run other Astro commands as `npm run astro -- <command>`; a bare
 | I want to…                      | Edit                                 |
 | ------------------------------- | ------------------------------------ |
 | change hero text, links, email  | `src/content/site.yaml`              |
-| edit the "how we nudge" section | `src/content/site.yaml` (`nudges`)   |
+| edit the “how we nudge” section | `src/content/site.yaml` (`nudges`)   |
 | add, hide or reorder a project  | `src/content/projects.yaml`          |
 | add or rename a project group   | `src/content/site.yaml` (`groups`)   |
 | change colors / spacing         | `src/styles/global.css` (tokens)     |
@@ -170,6 +170,9 @@ changes, stage them and commit again.
   and GPG signed (`git commit -s -S`, see [DCO.md](DCO.md)), checked before
   push. Commits to `main` go through pull requests. The prefix sets the next
   version (see [Deployment](#deployment)).
+- **Updating a pull request**:
+  `git pull --no-rebase -S --signoff origin main && git push` (the Update branch
+  button adds no sign-off); on Dependabot's, comment `@dependabot rebase`.
 
 No rule is turned off silently: an `enq:` comment above `yamllint disable` or
 `<!-- vale ... -->` says why (checked by noqaexplain).
@@ -206,7 +209,7 @@ prek.toml, biome.jsonc   checks (and the configuration files they point to)
 ## Conventions
 
 - **Follow the design**: Chrome iOS greys, no accent color, system fonts,
-  lowercase display headings, the 2 px "nudge" as the only movement, everything
+  lowercase display headings, the 2 px “nudge” as the only movement, everything
   off for reduced motion.
 - **Keep it light**: no JavaScript frameworks, no client-side router, no
   third-party requests (fonts, analytics, CDNs). Scripts are small and the site
@@ -256,9 +259,9 @@ Every deployment is then released: the _Release_ job tags the deployed commit as
 the next `vX.Y.Z` and publishes a GitHub release with generated notes. The bump
 comes from the commits since the last tag (the first release counts from
 `0.0.0`): `feat:` bumps the minor version, `fix:` the patch version, and `!`
-after the type (`feat!:`) or a `BREAKING CHANGE:` line in the description the
-major version. The version lives in tags only: `main` accepts pull requests
-only, so `package.json` stays at `0.0.0`.
+after the type or a `BREAKING CHANGE:` line in the description the major
+version. The version lives in tags only: `main` accepts pull requests only, so
+`package.json` stays at `0.0.0`.
 
 To run your own copy:
 
@@ -276,12 +279,12 @@ To run your own copy:
 The scripts in `.github/tools/harden/` apply the repository settings once the
 repository is public, either locally or through `.github/workflows/harden.yml`:
 squash merges only (pull request title as the commit), the rulesets in
-`.github/rulesets/` (signed commits, no force pushes, pull requests and the
-checks above required on `main`, only `vX.Y.Z` release tags, never moved or
-deleted), GitHub Pages with the custom domain, deployments from `main` only,
-secret scanning with push protection, Dependabot alerts and security updates,
-private vulnerability reporting and CodeQL. Every script can be run again (for
-example when someone joins as a maintainer).
+`.github/rulesets/` (signed commits, no force pushes but Dependabot's on its own
+branches, pull requests and the checks above required on `main`, only `vX.Y.Z`
+release tags, never moved or deleted), GitHub Pages with the custom domain,
+deployments from `main` only, secret scanning with push protection, Dependabot
+alerts and security updates, private vulnerability reporting and CodeQL. Every
+script can be run again (for example when someone joins as a maintainer).
 
 Merge the initial work into `main` first: the pull request checks run from
 `main` (`pull_request_target`), so once the rulesets require them, a pull
